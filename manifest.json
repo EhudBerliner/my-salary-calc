@@ -3,7 +3,7 @@
   "name": "מחשבון שכר וחיסכון פנסיוני",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2654/2654416.png",
+      "src": "Image1.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -14,3 +14,4 @@
   "theme_color": "#007aff",
   "background_color": "#f2f2f7"
 }
+
