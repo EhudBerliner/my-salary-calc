@@ -3,64 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מחשבון שכר, חיסכון וקצבה</title>
+    <title>מחשבון שכר, חיסכון וקצבה - עיצוב מאוחד</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007aff">
-    
-    <link rel="icon" type="image/jpeg" href="Image1.jpg">
-    <link rel="apple-touch-icon" href="Image1.jpg">
-
+    <link rel="apple-touch-icon" href="Image1.png">
     <style>
         * { box-sizing: border-box; }
         body { 
             font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             background-color: #f2f2f7; 
-            margin: 0; padding: 15px; 
-            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
         }
 
         .card { 
-            background: white; padding: 20px; border-radius: 20px; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 20px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            width: 100%; max-width: 480px; margin-bottom: 20px; 
+            width: 100%; 
+            max-width: 480px; 
+            margin-bottom: 20px; 
         }
 
-        h2 { text-align: center; font-size: 1.4rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f2f2f7; }
+        h2 { 
+            text-align: center; 
+            font-size: 1.4rem; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid #f2f2f7; 
+        }
+
         .salary-title { color: #007aff; }
         .savings-title { color: #5856d6; }
         .pension-title { color: #2c3e50; }
 
-        label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600; color: #3a3a3c; }
-        input, select { 
-            width: 100%; padding: 12px; border: 1px solid #d1d1d6; border-radius: 10px; 
-            font-size: 16px; background: #fafafa; font-weight: bold; text-align: center; 
-        }
-
-        /* עיצוב כפתורים כתום אחיד */
-        .btn-transfer, .btn-pension-transfer { 
-            width: 100%; padding: 10px; background: #ff9500; color: white; 
-            border: none; border-radius: 10px; font-weight: bold; font-size: 0.9rem; 
-            margin-top: 15px; cursor: pointer; 
-        }
-
-        /* עיצוב תיבות סיכום סגולות מאוחדות */
-        .summary-box { 
-            background: #5856d6; color: white; margin-top: 20px; 
-            padding: 18px; border-radius: 18px; 
-        }
+        .input-group { margin-bottom: 15px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         
-        .summary-title { text-align: center; font-size: 0.9rem; margin-bottom: 12px; font-weight: bold; opacity: 0.9; }
-        .s-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .total-highlight { 
-            border-top: 1px solid rgba(255, 255, 255, 0.2); 
-            margin-top: 10px; padding-top: 10px; font-weight: 800; 
-            font-size: 1.2rem; color: #ff9500; 
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            color: #3a3a3c; 
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #d1d1d6; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            background: #fafafa; 
+            font-weight: bold; 
+            text-align: center; 
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: #007aff; 
+            background: white; 
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+        }
+
+        .btn-transfer { 
+            width: 100%; 
+            padding: 12px; 
+            background: #007aff; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            margin-top: 15px; 
+            cursor: pointer; 
+        }
+
+        .btn-pension-transfer {
+            width: 100%; 
+            padding: 10px; 
+            background: #ff9500; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 0.9rem; 
+            margin-top: 10px; 
+            cursor: pointer;
         }
 
         .result-box { display: none; margin-top: 20px; }
-        .line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f2f2f7; }
-        .highlight { color: #34c759; font-weight: bold; }
-        .info { font-size: 0.75rem; opacity: 0.8; margin-top: 15px; text-align: center; }
+        .line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 0.95rem; }
+        .label { color: #8e8e93; }
+        .value { font-weight: 600; color: #1c1c1e; }
+        .highlight { color: #34c759; font-size: 1.1rem; }
+
+        /* עיצוב מאוחד לתיבות הסיכום - מבוסס על מחשבון החיסכון */
+        .summary-box { 
+            background: #5856d6; /* צבע סגול אחיד */
+            color: white; 
+            margin-top: 20px; 
+            padding: 18px; 
+            border-radius: 18px; 
+        }
+        
+        .summary-title { 
+            text-align: center; 
+            font-size: 0.9rem; 
+            color: #ffffff; /* כותרת לבנה על רקע סגול */
+            margin-bottom: 12px; 
+            font-weight: bold; 
+            opacity: 0.9;
+        }
+
+        .s-line { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 8px; 
+            font-size: 0.9rem; 
+        }
+
+        .total-highlight { 
+            border-top: 1px solid rgba(255, 255, 255, 0.2); 
+            margin-top: 10px; 
+            padding-top: 10px; 
+            font-weight: 800; 
+            font-size: 1.2rem; 
+            color: #ff9500; 
+        }
+
+        .info { 
+            font-size: 0.75rem; 
+            color: rgba(255, 255, 255, 0.8); 
+            margin-top: 15px; 
+            line-height: 1.4; 
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -73,34 +156,246 @@
     </div>
 
     <div id="salaryResultBox" class="result-box">
-        <div class="line"><span>נטו בבנק:</span> <span class="highlight" id="r_neto"></span></div>
+        <div class="line"><span class="label">נטו בבנק (חודשי):</span> <span class="value highlight" id="r_neto"></span></div>
+        <div class="line"><span class="label">מס הכנסה:</span> <span class="value" id="r_tax"></span></div>
+        <div class="line"><span class="label">בט"ל ובריאות:</span> <span class="value" id="r_bl"></span></div>
         <button class="btn-transfer" onclick="transferToSavings()">➕ העבר נתונים לתחזית חיסכון</button>
         <div class="summary-box">
             <div class="summary-title">סיכום צבירה שנתית</div>
             <div class="s-line"><span>נטו שנתי:</span> <span id="s_neto"></span></div>
-            <div class="s-line total-highlight"><span>סה"כ שנתי:</span> <span id="s_yearly_total"></span></div>
+            <div class="s-line"><span>פנסיה שנתית:</span> <span id="s_pension"></span></div>
+            <div class="s-line"><span>קה"ש שנתית:</span> <span id="s_ksh"></span></div>
+            <div class="s-line total-highlight"><span>סה"כ נטו + סוציאלי:</span> <span id="s_yearly_total"></span></div>
         </div>
     </div>
 </div>
 
 <div class="card" id="savingsCard">
     <h2 class="savings-title">תחזית חיסכון בפרישה</h2>
+    <div class="input-grid">
+        <div><label>צבירת פנסיה:</label><input type="text" id="p_start" oninput="formatAndCalc(this)"></div>
+        <div><label>צבירת קה"ש:</label><input type="text" id="k_start" oninput="formatAndCalc(this)"></div>
+        <div><label>הפקדת פנסיה:</label><input type="text" id="p_mon" oninput="formatAndCalc(this)"></div>
+        <div><label>הפקדת קה"ש:</label><input type="text" id="k_mon" oninput="formatAndCalc(this)"></div>
+        <div style="grid-column: span 2;">
+            <button onclick="clearDepositsAndSync()" style="width: 100%; padding: 8px; background: #ff3b30; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px;">
+                נקה הפקדות חודשיות
+            </button>
+        </div>
+        <div><label>שנות הפקדה:</label><input type="number" id="dep_years" oninput="formatAndCalc(this)" value="10"></div>
+        <div><label>שנות חיסכון:</label><input type="number" id="total_years" oninput="formatAndCalc(this)" value="20"></div>
+    </div>
+    <div class="input-group"><label>ריבית שנתית (%):</label><input type="number" id="roi" oninput="formatAndCalc(this)" value="3" step="0.1"></div>
     <div class="summary-box">
-        <div class="s-line"><span>הון בפרישה:</span> <span id="res_total"></span></div>
-        <button class="btn-pension-transfer" onclick="transferToPensionCalc()">💰 העבר לחישוב קצבה</button>
+        <div class="s-line"><span>פנסיה צפויה:</span> <span id="res_p"></span></div>
+        <div class="s-line"><span>קה"ש צפויה:</span> <span id="res_k"></span></div>
+        <div class="s-line total-highlight"><span>הון בפרישה:</span> <span id="res_total"></span></div>
+        <button class="btn-pension-transfer" onclick="transferToPensionCalc()">💰 העבר פנסיה צפויה לחישוב קצבה</button>
     </div>
 </div>
 
 <div class="card" id="pensionCalcCard">
     <h2 class="pension-title">מחשבון קצבה נטו</h2>
-    <div id="pensionResultBox" class="summary-box" style="display:none;">
-        <div class="s-line total-highlight"><span>קצבה נטו:</span> <span id="netoVal"></span></div>
+    <div class="input-group">
+        <label>סכום צבור בקרן (₪):</label>
+        <input type="text" id="totalSaved" placeholder="לדוגמה: 1,000,000" oninput="formatAndCalcPension(this)" inputmode="numeric">
+    </div>
+    <div class="input-grid">
+        <div>
+            <label>מין המבוטח/ת:</label>
+            <select id="gender" onchange="calculatePension()">
+                <option value="male">גבר</option>
+                <option value="female">אישה</option>
+            </select>
+        </div>
+        <div>
+            <label>גיל פרישה:</label>
+            <input type="number" id="retirementAge" value="67" oninput="calculatePension()">
+        </div>
+    </div>
+    <div id="pensionResultBox" class="summary-box" style="display:none; margin-top: 25px;">
+        <div class="s-line">
+            <span>קצבה ברוטו:</span>
+            <span id="brutoVal"></span>
+        </div>
+        <div class="s-line">
+            <span>מס הכנסה משוער:</span>
+            <span id="taxVal"></span>
+        </div>
+        <div class="s-line total-highlight">
+            <span>קצבה נטו:</span>
+            <span id="netoVal"></span>
+        </div>
+        <div class="info">
+            * החישוב מבוסס על מקדם המרה ממוצע ונקודות זיכוי בסיסיות (2.2 לגבר, 2.7 לאישה) לשנת 2024.
+        </div>
     </div>
 </div>
 
 <script>
-    // לוגיקת JavaScript כפי שמופיעה בקוד המקור שלך
-    // ... (פונקציות handleSalaryInput, calcSavings, transferToPensionCalc וכו')
+    let currentP = 0, currentK = 0, lastCalculatedPensionTotal = 0;
+
+    function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
+    function parseNumber(str) { return parseFloat(String(str).replace(/,/g, '')) || 0; }
+
+    function handleSalaryInput(input) {
+        let b = parseNumber(input.value);
+        input.value = b > 0 ? formatNumber(b) : "";
+        const resBox = document.getElementById('salaryResultBox');
+        if (b < 5000) { resBox.style.display = 'none'; return; }
+        resBox.style.display = 'block';
+
+        let tax = (b <= 18000) ? b * 0.097 : (b <= 25000) ? 1750 + (b-18000)*0.32 : (b <= 36000) ? 4000 + (b-25000)*0.40 : 8450 + (b-36000)*0.47;
+        if (b > 15712) tax += (b - 15712) * 0.075 * 0.35;
+        const bl = b * 0.067, neto = b - tax - bl - (b * 0.085);
+        const ep = b * 0.125, ek = b * 0.075;
+        currentP = ep + (b * 0.06); currentK = ek + (b * 0.025);
+
+        document.getElementById('r_neto').innerText = '₪' + formatNumber(neto);
+        document.getElementById('r_tax').innerText = '₪' + formatNumber(tax);
+        document.getElementById('r_bl').innerText = '₪' + formatNumber(bl);
+        document.getElementById('s_neto').innerText = '₪' + formatNumber(neto * 12);
+        document.getElementById('s_pension').innerText = '₪' + formatNumber(ep * 12);
+        document.getElementById('s_ksh').innerText = '₪' + formatNumber(ek * 12);
+        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber((neto + ep + ek) * 12);
+        saveToStorage();
+    }
+
+    function transferToSavings() {
+        document.getElementById('p_mon').value = formatNumber(currentP);
+        document.getElementById('k_mon').value = formatNumber(currentK);
+        document.getElementById('savingsCard').scrollIntoView({ behavior: 'smooth' });
+        calcSavings();
+        saveToStorage();
+    }
+
+    function formatAndCalc(input) {
+        if (input.type === "text") input.value = formatNumber(parseNumber(input.value));
+        calcSavings();
+        saveToStorage();
+    }
+
+    function calcSavings() {
+        const pS = parseNumber(document.getElementById('p_start').value), kS = parseNumber(document.getElementById('k_start').value);
+        const pM = parseNumber(document.getElementById('p_mon').value), kM = parseNumber(document.getElementById('k_mon').value);
+        const dY = parseInt(document.getElementById('dep_years').value) || 0, tY = parseInt(document.getElementById('total_years').value) || 0;
+        const roi = parseFloat(document.getElementById('roi').value) / 100 || 0;
+        const mRoi = Math.pow(1 + roi, 1/12) - 1, dM = dY * 12, wM = Math.max(0, (tY - dY) * 12);
+
+        function getFV(s, m) {
+            let fv = s * Math.pow(1 + mRoi, dM);
+            fv += (mRoi > 0) ? m * ((Math.pow(1 + mRoi, dM) - 1) / mRoi) : (m * dM);
+            return fv * Math.pow(1 + mRoi, wM);
+        }
+        const finalP = getFV(pS, pM), finalK = getFV(kS, kM);
+        lastCalculatedPensionTotal = finalP; 
+        document.getElementById('res_p').innerText = '₪' + formatNumber(finalP);
+        document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
+        document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
+    }
+
+    function clearDepositsAndSync() {
+        document.getElementById('p_mon').value = "";
+        document.getElementById('k_mon').value = "";
+        calcSavings();
+        document.getElementById('totalSaved').value = formatNumber(lastCalculatedPensionTotal);
+        calculatePension();
+        saveToStorage();
+    }
+
+    function transferToPensionCalc() {
+        document.getElementById('totalSaved').value = formatNumber(lastCalculatedPensionTotal);
+        document.getElementById('pensionCalcCard').scrollIntoView({ behavior: 'smooth' });
+        calculatePension();
+        saveToStorage();
+    }
+
+    function formatAndCalcPension(input) {
+        let val = parseNumber(input.value);
+        input.value = val > 0 ? formatNumber(val) : "";
+        calculatePension();
+        saveToStorage();
+    }
+
+    function calculatePension() {
+        const totalSaved = parseNumber(document.getElementById('totalSaved').value);
+        const gender = document.getElementById('gender').value;
+        const age = parseInt(document.getElementById('retirementAge').value);
+        const resBox = document.getElementById('pensionResultBox');
+
+        if (!totalSaved || totalSaved <= 0) {
+            resBox.style.display = 'none';
+            return;
+        }
+        resBox.style.display = 'block';
+
+        let factor = 200; 
+        if (age < 60) factor = 220;
+        if (age > 70) factor = 180;
+
+        const bruto = totalSaved / factor;
+        const pointValue = 242;
+        const points = (gender === 'female') ? 2.7 : 2.2;
+        const taxCredit = points * pointValue;
+
+        let tax = 0;
+        if (bruto > 7010) {
+            if (bruto <= 7010) tax = bruto * 0.1;
+            else if (bruto <= 10060) tax = (7010 * 0.1) + (bruto - 7010) * 0.14;
+            else if (bruto <= 16150) tax = (7010 * 0.1) + (3050 * 0.14) + (bruto - 10060) * 0.20;
+            else tax = (7010 * 0.1) + (3050 * 0.14) + (6090 * 0.20) + (bruto - 16150) * 0.31;
+        }
+
+        const finalTax = Math.max(0, tax - taxCredit);
+        const neto = bruto - finalTax;
+
+        document.getElementById('brutoVal').innerText = '₪' + formatNumber(bruto);
+        document.getElementById('taxVal').innerText = '₪' + formatNumber(finalTax);
+        document.getElementById('netoVal').innerText = '₪' + formatNumber(neto);
+    }
+
+    function saveToStorage() {
+        const data = {
+            bruto: document.getElementById('bruto_display').value,
+            pS: document.getElementById('p_start').value,
+            kS: document.getElementById('k_start').value,
+            pM: document.getElementById('p_mon').value,
+            kM: document.getElementById('k_mon').value,
+            dY: document.getElementById('dep_years').value,
+            tY: document.getElementById('total_years').value,
+            roi: document.getElementById('roi').value,
+            p_total: document.getElementById('totalSaved').value,
+            p_age: document.getElementById('retirementAge').value,
+            p_gender: document.getElementById('gender').value
+        };
+        localStorage.setItem('salaryCalcData', JSON.stringify(data));
+    }
+
+    function loadFromStorage() {
+        const saved = localStorage.getItem('salaryCalcData');
+        if (saved) {
+            const d = JSON.parse(saved);
+            document.getElementById('bruto_display').value = d.bruto || "";
+            document.getElementById('p_start').value = d.pS || "";
+            document.getElementById('k_start').value = d.kS || "";
+            document.getElementById('p_mon').value = d.pM || "";
+            document.getElementById('k_mon').value = d.kM || "";
+            document.getElementById('dep_years').value = d.dY || "10";
+            document.getElementById('total_years').value = d.tY || "20";
+            document.getElementById('roi').value = d.roi || "3";
+            if(d.p_total) document.getElementById('totalSaved').value = d.p_total;
+            if(d.p_age) document.getElementById('retirementAge').value = d.p_age;
+            if(d.p_gender) document.getElementById('gender').value = d.p_gender;
+            
+            if (d.bruto) handleSalaryInput(document.getElementById('bruto_display'));
+            if (d.p_total) calculatePension();
+        }
+    }
+
+    window.onload = function() { 
+        loadFromStorage(); 
+        calcSavings(); 
+    };
 </script>
 </body>
 </html>
