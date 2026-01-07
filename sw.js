@@ -3,7 +3,7 @@ const ASSETS = [
   './', 
   './index.html', 
   './manifest.json', 
-  './Image1.jpg'
+  './Image1.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -13,3 +13,4 @@ self.addEventListener('install', (e) => {
 self.addEventListener('fetch', (e) => {
   e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
 });
+
