@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון שכר וחיסכון</title>
     <link rel="manifest" href="manifest.json">
-	<meta name="theme-color" content="#007aff">
-	<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2654/2654416.png"><meta charset="UTF-8">
-    
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מחשבון שכר וחיסכון משולב - גרסה מלאה</title>
+    <meta name="theme-color" content="#007aff">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2654/2654416.png">
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, system-ui, sans-serif; background-color: #f2f2f7; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
@@ -14,33 +14,22 @@
         h2 { text-align: center; font-size: 1.4rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f2f2f7; }
         .salary-title { color: #007aff; }
         .savings-title { color: #5856d6; }
-        
         .input-group { margin-bottom: 15px; }
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 600; color: #3a3a3c; }
         input { width: 100%; padding: 12px; border: 1px solid #d1d1d6; border-radius: 10px; font-size: 16px; background: #fafafa; font-weight: bold; text-align: center; }
         input:focus { outline: none; border-color: #007aff; background: white; }
-        
         .result-box { display: none; }
         .line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 0.95rem; }
         .label { color: #8e8e93; }
         .value { font-weight: 600; color: #1c1c1e; }
         .highlight { color: #34c759; font-size: 1.1rem; }
-        .section-title { font-size: 0.85rem; color: #007aff; font-weight: bold; margin: 15px 0 5px; text-transform: uppercase; }
-        
-        .btn-transfer { width: 100%; padding: 12px; background: #007aff; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 15px; cursor: pointer; transition: background 0.2s; }
-        .btn-transfer:active { background: #0056b3; }
-
-        /* עיצוב סיכום שנתי */
+        .btn-transfer { width: 100%; padding: 12px; background: #007aff; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 15px; cursor: pointer; }
         .summary-box { background: #1c1c1e; color: white; margin-top: 20px; padding: 18px; border-radius: 18px; }
-        .summary-title { text-align: center; font-size: 0.9rem; color: #007aff; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid #3a3a3c; padding-bottom: 8px; }
+        .summary-title { text-align: center; font-size: 0.9rem; color: #007aff; margin-bottom: 12px; font-weight: bold; }
         .s-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-        .s-label { color: #a1a1a6; }
-        .s-value { font-weight: 500; }
         .total-highlight { border-top: 1px solid #3a3a3c; margin-top: 10px; padding-top: 10px; font-weight: 800; font-size: 1.2rem; color: #ff9500; }
-        
         .savings-summary { background: #5856d6; }
-        .info-text { font-size: 0.75rem; color: #8e8e93; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
@@ -49,186 +38,135 @@
     <h2 class="salary-title">מחשבון שכר חודשי</h2>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
-        <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="30,000" inputmode="numeric">
+        <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
     </div>
 
     <div id="salaryResultBox" class="result-box">
         <div class="line"><span class="label">נטו בבנק (חודשי):</span> <span class="value highlight" id="r_neto"></span></div>
-        <div class="line"><span class="label">מס הכנסה משוער:</span> <span class="value" id="r_tax"></span></div>
+        <div class="line"><span class="label">מס הכנסה:</span> <span class="value" id="r_tax"></span></div>
         <div class="line"><span class="label">בט"ל ובריאות:</span> <span class="value" id="r_bl"></span></div>
-        
-        <div class="section-title">הפרשות מעסיק (חודשי)</div>
-        <div class="line"><span class="label">פנסיה + פיצויים:</span> <span class="value" id="r_pension"></span></div>
-        <div class="line"><span class="label">קרן השתלמות:</span> <span class="value" id="r_ksh"></span></div>
-
         <button class="btn-transfer" onclick="transferToSavings()">➕ העבר נתונים לתחזית חיסכון</button>
-
         <div class="summary-box">
-            <div class="summary-title">סיכום צבירה שנתית (12 חודשים)</div>
-            <div class="s-line"><span class="s-label">סה"כ שכר נטו:</span> <span class="s-value" id="s_neto"></span></div>
-            <div class="s-line"><span class="s-label">סה"כ פנסיה + פיצויים:</span> <span class="s-value" id="s_pension"></span></div>
-            <div class="s-line"><span class="s-label">סה"כ קרן השתלמות:</span> <span class="s-value" id="s_ksh"></span></div>
-            <div class="s-line" style="border-top: 1px solid #3a3a3c; padding-top: 5px; margin-top: 5px;">
-                <span class="s-label">סה"כ סוציאלי (חיסכון):</span> <span class="s-value" id="s_social"></span>
-            </div>
-            <div class="s-line total-highlight">
-                <span>סה"כ נטו + סוציאלי:</span>
-                <span id="s_yearly_total"></span>
-            </div>
+            <div class="summary-title">סיכום צבירה שנתית</div>
+            <div class="s-line"><span>נטו שנתי:</span> <span id="s_neto"></span></div>
+            <div class="s-line"><span>פנסיה שנתית:</span> <span id="s_pension"></span></div>
+            <div class="s-line"><span>קה"ש שנתית:</span> <span id="s_ksh"></span></div>
+            <div class="s-line total-highlight"><span>סה"כ נטו + סוציאלי:</span> <span id="s_yearly_total"></span></div>
         </div>
     </div>
 </div>
 
 <div class="card" id="savingsCard">
     <h2 class="savings-title">תחזית חיסכון בפרישה</h2>
-    
     <div class="input-grid">
-        <div>
-            <label>צבירת פנסיה קיימת:</label>
-            <input type="text" id="p_start" oninput="formatAndCalc(this)" placeholder="0">
-        </div>
-        <div>
-            <label>צבירת קה"ש קיימת:</label>
-            <input type="text" id="k_start" oninput="formatAndCalc(this)" placeholder="0">
-        </div>
-        <div>
-            <label>הפקדת פנסיה (חודש):</label>
-            <input type="text" id="p_mon" oninput="formatAndCalc(this)" placeholder="0">
-        </div>
-        <div>
-            <label>הפקדת קה"ש (חודש):</label>
-            <input type="text" id="k_mon" oninput="formatAndCalc(this)" placeholder="0">
-        </div>
-        <div>
-            <label>משך הפקדה (שנים):</label>
-            <input type="number" id="dep_years" oninput="calcSavings()" value="10">
-        </div>
-        <div>
-            <label>זמן עד פרישה (שנים):</label>
-            <input type="number" id="total_years" oninput="calcSavings()" value="20">
-        </div>
+        <div><label>צבירת פנסיה:</label><input type="text" id="p_start" oninput="formatAndCalc(this)"></div>
+        <div><label>צבירת קה"ש:</label><input type="text" id="k_start" oninput="formatAndCalc(this)"></div>
+        <div><label>הפקדת פנסיה:</label><input type="text" id="p_mon" oninput="formatAndCalc(this)"></div>
+        <div><label>הפקדת קה"ש:</label><input type="text" id="k_mon" oninput="formatAndCalc(this)"></div>
+        <div><label>שנות הפקדה:</label><input type="number" id="dep_years" oninput="formatAndCalc(this)" value="10"></div>
+        <div><label>שנות חיסכון:</label><input type="number" id="total_years" oninput="formatAndCalc(this)" value="20"></div>
     </div>
-    
-    <div class="input-group">
-        <label>ריבית שנתית ריאלית (%):</label>
-        <input type="number" id="roi" oninput="calcSavings()" value="4" step="0.1">
-    </div>
-
+    <div class="input-group"><label>ריבית שנתית (%):</label><input type="number" id="roi" oninput="formatAndCalc(this)" value="4" step="0.1"></div>
     <div class="summary-box savings-summary">
-        <div class="s-line"><span>שווי פנסיה צפוי:</span> <span id="res_p">₪0</span></div>
-        <div class="s-line"><span>שווי קה"ש צפוי:</span> <span id="res_k">₪0</span></div>
-        <div class="s-line total-highlight" style="border-top: 1px solid rgba(255,255,255,0.2);">
-            <span>סה"כ הון בפרישה:</span>
-            <span id="res_total">₪0</span>
-        </div>
+        <div class="s-line"><span>פנסיה צפויה:</span> <span id="res_p"></span></div>
+        <div class="s-line"><span>קה"ש צפויה:</span> <span id="res_k"></span></div>
+        <div class="s-line total-highlight"><span>הון בפרישה:</span> <span id="res_total"></span></div>
     </div>
-    <p class="info-text">החישוב מניח הפקדות למשך זמן ההפרשה, ולאחר מכן צבירת ריבית בלבד.</p>
 </div>
 
 <script>
-    let currentMonthlyTotalPension = 0;
-    let currentMonthlyTotalKsh = 0;
+    let currentP = 0, currentK = 0;
 
     function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
-    function parseNumber(str) { return parseFloat(str.replace(/,/g, '')) || 0; }
+    function parseNumber(str) { return parseFloat(String(str).replace(/,/g, '')) || 0; }
+
+    function saveToStorage() {
+        const data = {
+            bruto: document.getElementById('bruto_display').value,
+            pS: document.getElementById('p_start').value,
+            kS: document.getElementById('k_start').value,
+            pM: document.getElementById('p_mon').value,
+            kM: document.getElementById('k_mon').value,
+            dY: document.getElementById('dep_years').value,
+            tY: document.getElementById('total_years').value,
+            roi: document.getElementById('roi').value
+        };
+        localStorage.setItem('salaryCalcData', JSON.stringify(data));
+    }
+
+    function loadFromStorage() {
+        const saved = localStorage.getItem('salaryCalcData');
+        if (saved) {
+            const d = JSON.parse(saved);
+            document.getElementById('bruto_display').value = d.bruto || "";
+            document.getElementById('p_start').value = d.pS || "";
+            document.getElementById('k_start').value = d.kS || "";
+            document.getElementById('p_mon').value = d.pM || "";
+            document.getElementById('k_mon').value = d.kM || "";
+            document.getElementById('dep_years').value = d.dY || "10";
+            document.getElementById('total_years').value = d.tY || "20";
+            document.getElementById('roi').value = d.roi || "4";
+            if (d.bruto) handleSalaryInput(document.getElementById('bruto_display'));
+        }
+    }
 
     function handleSalaryInput(input) {
-        let val = parseNumber(input.value);
-        input.value = val > 0 ? formatNumber(val) : "";
-        
+        let b = parseNumber(input.value);
+        input.value = b > 0 ? formatNumber(b) : "";
         const resBox = document.getElementById('salaryResultBox');
-        if (val < 5000 || val > 60000) { resBox.style.display = 'none'; return; }
+        if (b < 5000) { resBox.style.display = 'none'; return; }
         resBox.style.display = 'block';
 
-        // חישוב מס לפי הלוגיקה בקוד המקור
-        let tax = 0;
-        if (val <= 18000) tax = val * 0.097;
-        else if (val <= 25000) tax = 1750 + (val - 18000) * 0.32;
-        else if (val <= 36000) tax = 4000 + (val - 25000) * 0.40;
-        else tax = 8450 + (val - 36000) * 0.47;
+        let tax = (b <= 18000) ? b * 0.097 : (b <= 25000) ? 1750 + (b-18000)*0.32 : (b <= 36000) ? 4000 + (b-25000)*0.40 : 8450 + (b-36000)*0.47;
+        if (b > 15712) tax += (b - 15712) * 0.075 * 0.35;
+        const bl = b * 0.067, neto = b - tax - bl - (b * 0.085);
+        const ep = b * 0.125, ek = b * 0.075;
+        currentP = ep + (b * 0.06); currentK = ek + (b * 0.025);
 
-        if (val > 15712) tax += (val - 15712) * 0.075 * 0.35;
-
-        const bl = val * 0.067;
-        const workerDeduction = val * 0.085;
-        const neto = val - tax - bl - workerDeduction;
-
-        const empPension = val * 0.125;
-        const empKsh = val * 0.075;
-        const monthlySocial = empPension + empKsh;
-
-        // סכומים להעברה (מעסיק + עובד)
-        currentMonthlyTotalPension = empPension + (val * 0.06); 
-        currentMonthlyTotalKsh = empKsh + (val * 0.025);
-
-        // עדכון תצוגה חודשית
         document.getElementById('r_neto').innerText = '₪' + formatNumber(neto);
         document.getElementById('r_tax').innerText = '₪' + formatNumber(tax);
         document.getElementById('r_bl').innerText = '₪' + formatNumber(bl);
-        document.getElementById('r_pension').innerText = '₪' + formatNumber(empPension);
-        document.getElementById('r_ksh').innerText = '₪' + formatNumber(empKsh);
-
-        // עדכון סיכום שנתי מלא
         document.getElementById('s_neto').innerText = '₪' + formatNumber(neto * 12);
-        document.getElementById('s_pension').innerText = '₪' + formatNumber(empPension * 12);
-        document.getElementById('s_ksh').innerText = '₪' + formatNumber(empKsh * 12);
-        document.getElementById('s_social').innerText = '₪' + formatNumber(monthlySocial * 12);
-        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber((neto + monthlySocial) * 12);
+        document.getElementById('s_pension').innerText = '₪' + formatNumber(ep * 12);
+        document.getElementById('s_ksh').innerText = '₪' + formatNumber(ek * 12);
+        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber((neto + ep + ek) * 12);
+        saveToStorage();
     }
 
     function transferToSavings() {
-        document.getElementById('p_mon').value = formatNumber(currentMonthlyTotalPension);
-        document.getElementById('k_mon').value = formatNumber(currentMonthlyTotalKsh);
+        document.getElementById('p_mon').value = formatNumber(currentP);
+        document.getElementById('k_mon').value = formatNumber(currentK);
         document.getElementById('savingsCard').scrollIntoView({ behavior: 'smooth' });
         calcSavings();
+        saveToStorage();
     }
 
     function formatAndCalc(input) {
-        let val = parseNumber(input.value);
-        input.value = val > 0 ? formatNumber(val) : "";
+        if (input.type === "text") input.value = formatNumber(parseNumber(input.value));
         calcSavings();
+        saveToStorage();
     }
 
     function calcSavings() {
-        const pStart = parseNumber(document.getElementById('p_start').value);
-        const kStart = parseNumber(document.getElementById('k_start').value);
-        const pMon = parseNumber(document.getElementById('p_mon').value);
-        const kMon = parseNumber(document.getElementById('k_mon').value);
-        const depYears = parseInt(document.getElementById('dep_years').value) || 0;
-        const totalYears = parseInt(document.getElementById('total_years').value) || 0;
-        const annualRoi = parseFloat(document.getElementById('roi').value) / 100 || 0;
+        const pS = parseNumber(document.getElementById('p_start').value), kS = parseNumber(document.getElementById('k_start').value);
+        const pM = parseNumber(document.getElementById('p_mon').value), kM = parseNumber(document.getElementById('k_mon').value);
+        const dY = parseInt(document.getElementById('dep_years').value) || 0, tY = parseInt(document.getElementById('total_years').value) || 0;
+        const roi = parseFloat(document.getElementById('roi').value) / 100 || 0;
+        const mRoi = Math.pow(1 + roi, 1/12) - 1, dM = dY * 12, wM = Math.max(0, (tY - dY) * 12);
 
-        const monthlyRoi = Math.pow(1 + annualRoi, 1/12) - 1;
-        const depMonths = depYears * 12;
-        const waitMonths = Math.max(0, (totalYears - depYears) * 12);
-
-        function getFV(start, monthly) {
-            let fv = start * Math.pow(1 + monthlyRoi, depMonths);
-            if (monthlyRoi > 0) {
-                fv += monthly * ((Math.pow(1 + monthlyRoi, depMonths) - 1) / monthlyRoi);
-            } else {
-                fv += (monthly * depMonths);
-            }
-            return fv * Math.pow(1 + monthlyRoi, waitMonths);
+        function getFV(s, m) {
+            let fv = s * Math.pow(1 + mRoi, dM);
+            fv += (mRoi > 0) ? m * ((Math.pow(1 + mRoi, dM) - 1) / mRoi) : (m * dM);
+            return fv * Math.pow(1 + mRoi, wM);
         }
-
-        const finalP = getFV(pStart, pMon);
-        const finalK = getFV(kStart, kMon);
-
+        const finalP = getFV(pS, pM), finalK = getFV(kS, kM);
         document.getElementById('res_p').innerText = '₪' + formatNumber(finalP);
         document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
     }
 
-    window.onload = calcSavings;
+    window.onload = function() { loadFromStorage(); calcSavings(); };
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 </script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('Service Worker Registered'));
-  }
-</script>
-
 </body>
 </html>
