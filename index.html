@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מחשבון שכר, חיסכון וקצבה - עיצוב מאוחד</title>
+    <title>מחשבון שכר, חיסכון וקצבה - עיצוב כפתורים אחיד</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007aff">
     <link rel="apple-touch-icon" href="Image1.png">
@@ -71,30 +71,23 @@
             box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
         }
 
-        .btn-transfer { 
-            width: 100%; 
-            padding: 12px; 
-            background: #007aff; 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            font-weight: bold; 
-            font-size: 1rem; 
-            margin-top: 15px; 
-            cursor: pointer; 
-        }
-
-        .btn-pension-transfer {
+        /* עיצוב אחיד לכפתורי ההעברה (כתום) */
+        .btn-transfer, .btn-pension-transfer { 
             width: 100%; 
             padding: 10px; 
-            background: #ff9500; 
+            background: #ff9500; /* צבע כתום לפי הדרישה */
             color: white; 
             border: none; 
             border-radius: 10px; 
             font-weight: bold; 
             font-size: 0.9rem; 
-            margin-top: 10px; 
-            cursor: pointer;
+            margin-top: 15px; 
+            cursor: pointer; 
+            transition: background 0.3s;
+        }
+        
+        .btn-transfer:hover, .btn-pension-transfer:hover {
+            background: #e68600;
         }
 
         .result-box { display: none; margin-top: 20px; }
@@ -103,9 +96,8 @@
         .value { font-weight: 600; color: #1c1c1e; }
         .highlight { color: #34c759; font-size: 1.1rem; }
 
-        /* עיצוב מאוחד לתיבות הסיכום - מבוסס על מחשבון החיסכון */
         .summary-box { 
-            background: #5856d6; /* צבע סגול אחיד */
+            background: #5856d6; 
             color: white; 
             margin-top: 20px; 
             padding: 18px; 
@@ -115,7 +107,7 @@
         .summary-title { 
             text-align: center; 
             font-size: 0.9rem; 
-            color: #ffffff; /* כותרת לבנה על רקע סגול */
+            color: #ffffff; 
             margin-bottom: 12px; 
             font-weight: bold; 
             opacity: 0.9;
