@@ -1,5 +1,10 @@
 const CACHE_NAME = 'salary-calc-v1';
-const ASSETS = ['./', './index.html', './manifest.json'];
+const ASSETS = [
+  './', 
+  './index.html', 
+  './manifest.json', 
+  './Image1.jpg'
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
