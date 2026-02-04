@@ -146,6 +146,34 @@
             line-height: 1.4; 
             text-align: center;
         }
+        
+        /* Inflation erosion display */
+        .erosion-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .erosion-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            opacity: 0.95;
+        }
+        
+        .erosion-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: 5px;
+        }
+        
+        .erosion-note {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
 
         /* Scroll to Top Button */
         #scrollTopBtn {
@@ -181,13 +209,61 @@
             position: sticky;
             top: 0;
             background: white;
-            padding: 15px 20px;
+            padding: 10px 15px;
             border-radius: 15px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 100;
             max-width: 480px;
             width: 100%;
+        }
+        
+        /* Economic indicators header */
+        .economic-header {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f2f2f7;
+            font-size: 0.75rem;
+        }
+        
+        .economic-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .economic-label {
+            color: #8e8e93;
+            font-size: 0.7rem;
+        }
+        
+        .economic-value {
+            font-weight: 700;
+            color: #007aff;
+            font-size: 0.85rem;
+        }
+        
+        .economic-date {
+            color: #c7c7cc;
+            font-size: 0.65rem;
+        }
+        
+        @media (max-width: 480px) {
+            .progress-container {
+                padding: 8px 12px;
+            }
+            .economic-header {
+                padding: 6px 0;
+                margin-bottom: 8px;
+                font-size: 0.7rem;
+            }
+            .economic-value {
+                font-size: 0.8rem;
+            }
         }
 
         .progress-steps {
@@ -465,6 +541,20 @@
 
 <!-- Progress Bar -->
 <div class="progress-container">
+    <!-- Economic Indicators Header -->
+    <div class="economic-header">
+        <div class="economic-item">
+            <div class="economic-label">שער דולר</div>
+            <div class="economic-value" id="usdRateDisplay">טוען...</div>
+            <div class="economic-date" id="usdRateDate"></div>
+        </div>
+        <div class="economic-item">
+            <div class="economic-label">אינפלציה שנתית</div>
+            <div class="economic-value" id="inflationRateDisplay">טוען...</div>
+            <div class="economic-date" id="inflationRateDate"></div>
+        </div>
+    </div>
+    
     <div class="progress-steps">
         <div class="progress-line">
             <div class="progress-line-fill" id="progressFill"></div>
@@ -489,7 +579,7 @@
 
 <div class="card">
     <h2 class="salary-title">מחשבון שכר חודשי</h2>
-    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.1 - משודרגת</div>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.2 - משודרגת</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -535,6 +625,16 @@
         <div class="s-line"><span>פנסיה צפויה:</span> <span id="res_p"></span></div>
         <div class="s-line"><span>קה"ש צפויה:</span> <span id="res_k"></span></div>
         <div class="s-line total-highlight"><span>הון בפרישה:</span> <span id="res_total"></span></div>
+        
+        <!-- Inflation Erosion Display -->
+        <div class="erosion-box" id="savingsErosionBox" style="display: none;">
+            <div class="erosion-title">💸 ערך ריאלי (לאחר שחיקה אינפלציונית)</div>
+            <div class="erosion-value" id="savingsRealValue"></div>
+            <div class="erosion-note">
+                מחושב לפי אינפלציה ממוצעת של <span id="savingsInflationRate"></span>% לשנה
+            </div>
+        </div>
+        
         <button class="btn-pension-transfer" onclick="transferToPensionCalc()">💰 העבר פנסיה צפויה לחישוב קצבה</button>
     </div>
     
@@ -631,6 +731,19 @@
         <div class="s-line"><span>מקה"ש (תקופת גישור):</span> <span id="totalProvident"></span></div>
         <div class="s-line"><span>מפנסיה (מגיל <span id="pensionStartAge"></span>):</span> <span id="totalPension"></span></div>
         <div class="s-line total-highlight"><span>סה"כ הכנסה ממוצעת:</span> <span id="avgIncome"></span></div>
+        
+        <!-- Inflation Erosion Display -->
+        <div class="erosion-box" id="pensionErosionBox" style="display: none;">
+            <div class="erosion-title">💸 ערך ריאלי של החיסכון (לאחר שחיקה אינפלציונית)</div>
+            <div class="erosion-value">
+                <div style="margin-bottom: 5px;">פנסיה: <span id="pensionRealValue"></span></div>
+                <div>קה"ש: <span id="providentRealValue"></span></div>
+            </div>
+            <div class="erosion-note">
+                מחושב לפי אינפלציה ממוצעת של <span id="pensionInflationRate"></span>% לשנה עד גיל פרישה
+            </div>
+        </div>
+        
         <div class="info">
             * החישוב מבוסס על מקדם המרה ממוצע ונקודות זיכוי בסיסיות לשנת 2024.<br>
             ** קרן השתלמות מחושבת כמשיכות בודדות - ניתן להגדיר תדירות.
@@ -657,7 +770,7 @@
 <script>
     /**
      * =====================================================
-     * SALARY & PENSION CALCULATOR v3.1
+     * SALARY & PENSION CALCULATOR v3.2
      * =====================================================
      * 
      * Architecture: Data-driven with centralized configuration
@@ -828,6 +941,18 @@
                     
                     // Update displays
                     document.getElementById('inflationRate').innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%`;
+                    
+                    // Update header display
+                    const headerDisplay = document.getElementById('inflationRateDisplay');
+                    const headerDate = document.getElementById('inflationRateDate');
+                    if (headerDisplay) {
+                        headerDisplay.innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%`;
+                    }
+                    if (headerDate) {
+                        const now = new Date();
+                        headerDate.innerHTML = `${now.getDate()}/${now.getMonth() + 1}`;
+                    }
+                    
                     updateDataStatus();
                     updateWidgetTime();
                     return true;
@@ -846,6 +971,18 @@
                     
                     // Update displays
                     document.getElementById('inflationRate').innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%`;
+                    
+                    // Update header display
+                    const headerDisplay = document.getElementById('inflationRateDisplay');
+                    const headerDate = document.getElementById('inflationRateDate');
+                    if (headerDisplay) {
+                        headerDisplay.innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%`;
+                    }
+                    if (headerDate) {
+                        const now = new Date();
+                        headerDate.innerHTML = `${now.getDate()}/${now.getMonth() + 1}`;
+                    }
+                    
                     updateDataStatus();
                     updateWidgetTime();
                     return true;
@@ -857,6 +994,13 @@
             console.warn('Failed to fetch inflation rate, using default 2.5%:', error);
             APP_STATE.inflationRate = FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
             document.getElementById('inflationRate').innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%*`;
+            
+            // Update header with fallback
+            const headerDisplay = document.getElementById('inflationRateDisplay');
+            if (headerDisplay) {
+                headerDisplay.innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%*`;
+            }
+            
             return false;
         }
     }
@@ -993,10 +1137,31 @@
             const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             const data = await response.json();
             usdRate = data.rates.ILS || 3.6;
+            
+            // Update widget
             document.getElementById('usdRate').innerHTML = `$1 = ₪${usdRate.toFixed(2)}`;
+            
+            // Update header display
+            const headerDisplay = document.getElementById('usdRateDisplay');
+            const headerDate = document.getElementById('usdRateDate');
+            if (headerDisplay) {
+                headerDisplay.innerHTML = `₪${usdRate.toFixed(2)}`;
+            }
+            if (headerDate) {
+                const now = new Date();
+                headerDate.innerHTML = `${now.getDate()}/${now.getMonth() + 1}`;
+            }
+            
+            APP_STATE.lastDataUpdate.usd = new Date().toISOString();
         } catch (error) {
             console.error('Failed to fetch USD rate:', error);
             document.getElementById('usdRate').innerHTML = `$1 ≈ ₪${usdRate.toFixed(2)}`;
+            
+            // Update header with fallback
+            const headerDisplay = document.getElementById('usdRateDisplay');
+            if (headerDisplay) {
+                headerDisplay.innerHTML = `₪${usdRate.toFixed(2)}`;
+            }
         }
     }
 
@@ -1376,6 +1541,26 @@
         document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
         
+        // Calculate and display real value after inflation erosion
+        if ((finalP + finalK) > 0 && tY > 0) {
+            const inflationRate = APP_STATE.inflationRate || FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
+            const totalNominal = finalP + finalK;
+            const realValue = totalNominal / Math.pow(1 + inflationRate, tY);
+            
+            const erosionBox = document.getElementById('savingsErosionBox');
+            const realValueDisplay = document.getElementById('savingsRealValue');
+            const inflationRateDisplay = document.getElementById('savingsInflationRate');
+            
+            if (erosionBox && realValueDisplay && inflationRateDisplay) {
+                erosionBox.style.display = 'block';
+                realValueDisplay.innerText = '₪' + formatNumber(realValue);
+                inflationRateDisplay.innerText = (inflationRate * 100).toFixed(1);
+            }
+        } else {
+            const erosionBox = document.getElementById('savingsErosionBox');
+            if (erosionBox) erosionBox.style.display = 'none';
+        }
+        
         // Draw chart and update inflation
         drawSavingsChart();
         updateInflation();
@@ -1522,8 +1707,35 @@
             document.getElementById('totalPension').innerText = '₪' + formatNumber(monthlyPension);
             document.getElementById('pensionStartAge').innerText = retireAge;
             document.getElementById('avgIncome').innerText = '₪' + formatNumber(avgMonthlyIncome);
+            
+            // Calculate and display real value after inflation erosion
+            const currentAge = 30; // Default current age, can be made configurable
+            const yearsUntilRetirement = stopAge - currentAge;
+            
+            if (yearsUntilRetirement > 0) {
+                const inflationRate = APP_STATE.inflationRate || FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
+                const pensionRealValue = pensionAmount / Math.pow(1 + inflationRate, yearsUntilRetirement);
+                const providentRealValue = providentAmount / Math.pow(1 + inflationRate, yearsUntilRetirement);
+                
+                const erosionBox = document.getElementById('pensionErosionBox');
+                const pensionRealDisplay = document.getElementById('pensionRealValue');
+                const providentRealDisplay = document.getElementById('providentRealValue');
+                const inflationRateDisplay = document.getElementById('pensionInflationRate');
+                
+                if (erosionBox && pensionRealDisplay && providentRealDisplay && inflationRateDisplay) {
+                    erosionBox.style.display = 'block';
+                    pensionRealDisplay.innerText = '₪' + formatNumber(pensionRealValue);
+                    providentRealDisplay.innerText = '₪' + formatNumber(providentRealValue);
+                    inflationRateDisplay.innerText = (inflationRate * 100).toFixed(1);
+                }
+            } else {
+                const erosionBox = document.getElementById('pensionErosionBox');
+                if (erosionBox) erosionBox.style.display = 'none';
+            }
         } else {
             totalBox.style.display = 'none';
+            const erosionBox = document.getElementById('pensionErosionBox');
+            if (erosionBox) erosionBox.style.display = 'none';
         }
     }
 
