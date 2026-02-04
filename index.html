@@ -195,39 +195,69 @@
 </div>
 
 <div class="card" id="pensionCalcCard">
-    <h2 class="pension-title">מחשבון קצבה נטו</h2>
-    <div class="input-group">
-        <label>סכום צבור בקרן (₪):</label>
-        <input type="text" id="totalSaved" placeholder="לדוגמה: 1,000,000" oninput="formatAndCalcPension(this)" inputmode="numeric">
-    </div>
+    <h2 class="pension-title">מחשבון הכנסות בפרישה</h2>
+    
+    <!-- פרמטרים משותפים -->
     <div class="input-grid">
         <div>
+            <label>גיל הפסקת הפרשות:</label>
+            <input type="number" id="stopDepositAge" value="57" oninput="calculateSplitPension()">
+        </div>
+        <div>
+            <label>גיל פרישה (קצבה):</label>
+            <input type="number" id="retirementAge" value="67" oninput="calculateSplitPension()">
+        </div>
+        <div style="grid-column: span 2;">
             <label>מין המבוטח/ת:</label>
-            <select id="gender" onchange="calculatePension()">
+            <select id="gender" onchange="calculateSplitPension()">
                 <option value="male">גבר</option>
                 <option value="female">אישה</option>
             </select>
         </div>
-        <div>
-            <label>גיל פרישה:</label>
-            <input type="number" id="retirementAge" value="67" oninput="calculatePension()">
+    </div>
+
+    <!-- קרן השתלמות -->
+    <div style="background: #f8f8f8; padding: 15px; border-radius: 12px; margin-top: 20px;">
+        <h3 style="font-size: 1rem; color: #ff9500; margin: 0 0 15px 0;">💰 קרן השתלמות</h3>
+        <div class="input-group">
+            <label>סכום צפוי בקרן (₪):</label>
+            <input type="text" id="providentFund" oninput="formatAndCalcSplit(this)" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="input-group">
+            <label>מספר משיכות (פעימות) בתקופת הגישור:</label>
+            <input type="number" id="withdrawalCount" value="12" min="1" oninput="calculateSplitPension()">
+        </div>
+        <div id="providentResultBox" style="display:none; margin-top: 15px;">
+            <div class="line"><span class="label">תקופת גישור (שנים):</span> <span class="value" id="bridgePeriod"></span></div>
+            <div class="line"><span class="label">משיכה לפעימה (ברוטו):</span> <span class="value highlight" id="withdrawalAmount"></span></div>
+            <div class="line"><span class="label">תדירות משיכות:</span> <span class="value" id="withdrawalFrequency"></span></div>
+            <div class="line" style="border-bottom: none;"><span class="label">משיכה חודשית שקולה:</span> <span class="value highlight" id="monthlyEquivalent"></span></div>
         </div>
     </div>
-    <div id="pensionResultBox" class="summary-box" style="display:none; margin-top: 25px;">
-        <div class="s-line">
-            <span>קצבה ברוטו:</span>
-            <span id="brutoVal"></span>
+
+    <!-- פנסיה -->
+    <div style="background: #f8f8f8; padding: 15px; border-radius: 12px; margin-top: 20px;">
+        <h3 style="font-size: 1rem; color: #2c3e50; margin: 0 0 15px 0;">🏦 פנסיה</h3>
+        <div class="input-group">
+            <label>סכום צפוי בפנסיה (₪):</label>
+            <input type="text" id="pensionFund" oninput="formatAndCalcSplit(this)" placeholder="0" inputmode="numeric">
         </div>
-        <div class="s-line">
-            <span>מס הכנסה משוער:</span>
-            <span id="taxVal"></span>
+        <div id="pensionResultBox" style="display:none; margin-top: 15px;">
+            <div class="line"><span class="label">קצבה ברוטו:</span> <span class="value" id="brutoVal"></span></div>
+            <div class="line"><span class="label">מס הכנסה:</span> <span class="value" id="taxVal"></span></div>
+            <div class="line" style="border-bottom: none;"><span class="label">קצבה נטו:</span> <span class="value highlight" id="netoVal"></span></div>
         </div>
-        <div class="s-line total-highlight">
-            <span>קצבה נטו:</span>
-            <span id="netoVal"></span>
-        </div>
+    </div>
+
+    <!-- סיכום כולל -->
+    <div id="totalIncomeBox" class="summary-box" style="display:none; margin-top: 20px;">
+        <div class="summary-title">סיכום הכנסה חודשית שקולה</div>
+        <div class="s-line"><span>מקה"ש (תקופת גישור):</span> <span id="totalProvident"></span></div>
+        <div class="s-line"><span>מפנסיה (מגיל <span id="pensionStartAge"></span>):</span> <span id="totalPension"></span></div>
+        <div class="s-line total-highlight"><span>סה"כ הכנסה ממוצעת:</span> <span id="avgIncome"></span></div>
         <div class="info">
-            * החישוב מבוסס על מקדם המרה ממוצע ונקודות זיכוי בסיסיות (2.2 לגבר, 2.7 לאישה) לשנת 2024.
+            * החישוב מבוסס על מקדם המרה ממוצע ונקודות זיכוי בסיסיות לשנת 2024.<br>
+            ** קרן השתלמות מחושבת כמשיכות בודדות - ניתן להגדיר תדירות.
         </div>
     </div>
 </div>
@@ -298,60 +328,115 @@
         document.getElementById('p_mon').value = "";
         document.getElementById('k_mon').value = "";
         calcSavings();
-        document.getElementById('totalSaved').value = formatNumber(lastCalculatedPensionTotal);
-        calculatePension();
+        
+        // העברת הסכומים הצפויים למחשבון הפרישה
+        const finalP = lastCalculatedPensionTotal;
+        const finalK = parseNumber(document.getElementById('res_k').innerText.replace('₪', ''));
+        document.getElementById('pensionFund').value = formatNumber(finalP);
+        document.getElementById('providentFund').value = formatNumber(finalK);
+        calculateSplitPension();
         saveToStorage();
     }
 
     function transferToPensionCalc() {
-        document.getElementById('totalSaved').value = formatNumber(lastCalculatedPensionTotal);
+        const finalP = lastCalculatedPensionTotal;
+        const finalK = parseNumber(document.getElementById('res_k').innerText.replace('₪', ''));
+        
+        document.getElementById('pensionFund').value = formatNumber(finalP);
+        document.getElementById('providentFund').value = formatNumber(finalK);
         document.getElementById('pensionCalcCard').scrollIntoView({ behavior: 'smooth' });
-        calculatePension();
+        calculateSplitPension();
         saveToStorage();
     }
 
-    function formatAndCalcPension(input) {
+    function formatAndCalcSplit(input) {
         let val = parseNumber(input.value);
         input.value = val > 0 ? formatNumber(val) : "";
-        calculatePension();
+        calculateSplitPension();
         saveToStorage();
     }
 
-    function calculatePension() {
-        const totalSaved = parseNumber(document.getElementById('totalSaved').value);
+    function calculateSplitPension() {
+        const providentAmount = parseNumber(document.getElementById('providentFund').value);
+        const pensionAmount = parseNumber(document.getElementById('pensionFund').value);
+        const stopAge = parseInt(document.getElementById('stopDepositAge').value) || 57;
+        const retireAge = parseInt(document.getElementById('retirementAge').value) || 67;
+        const withdrawals = parseInt(document.getElementById('withdrawalCount').value) || 12;
         const gender = document.getElementById('gender').value;
-        const age = parseInt(document.getElementById('retirementAge').value);
-        const resBox = document.getElementById('pensionResultBox');
 
-        if (!totalSaved || totalSaved <= 0) {
-            resBox.style.display = 'none';
-            return;
-        }
-        resBox.style.display = 'block';
+        const providentBox = document.getElementById('providentResultBox');
+        const pensionBox = document.getElementById('pensionResultBox');
+        const totalBox = document.getElementById('totalIncomeBox');
 
-        let factor = 200; 
-        if (age < 60) factor = 220;
-        if (age > 70) factor = 180;
+        // חישוב קרן השתלמות
+        if (providentAmount > 0 && retireAge > stopAge) {
+            providentBox.style.display = 'block';
+            
+            const bridgeYears = retireAge - stopAge;
+            const bridgeMonths = bridgeYears * 12;
+            const amountPerWithdrawal = providentAmount / withdrawals;
+            const monthsPerWithdrawal = bridgeMonths / withdrawals;
+            const monthlyEquiv = providentAmount / bridgeMonths;
 
-        const bruto = totalSaved / factor;
-        const pointValue = 242;
-        const points = (gender === 'female') ? 2.7 : 2.2;
-        const taxCredit = points * pointValue;
-
-        let tax = 0;
-        if (bruto > 7010) {
-            if (bruto <= 7010) tax = bruto * 0.1;
-            else if (bruto <= 10060) tax = (7010 * 0.1) + (bruto - 7010) * 0.14;
-            else if (bruto <= 16150) tax = (7010 * 0.1) + (3050 * 0.14) + (bruto - 10060) * 0.20;
-            else tax = (7010 * 0.1) + (3050 * 0.14) + (6090 * 0.20) + (bruto - 16150) * 0.31;
+            document.getElementById('bridgePeriod').innerText = bridgeYears + ' שנים';
+            document.getElementById('withdrawalAmount').innerText = '₪' + formatNumber(amountPerWithdrawal);
+            document.getElementById('withdrawalFrequency').innerText = 'כל ' + monthsPerWithdrawal.toFixed(1) + ' חודשים';
+            document.getElementById('monthlyEquivalent').innerText = '₪' + formatNumber(monthlyEquiv);
+        } else {
+            providentBox.style.display = 'none';
         }
 
-        const finalTax = Math.max(0, tax - taxCredit);
-        const neto = bruto - finalTax;
+        // חישוב פנסיה
+        if (pensionAmount > 0) {
+            pensionBox.style.display = 'block';
+            
+            let factor = 200;
+            if (retireAge < 60) factor = 220;
+            if (retireAge > 70) factor = 180;
 
-        document.getElementById('brutoVal').innerText = '₪' + formatNumber(bruto);
-        document.getElementById('taxVal').innerText = '₪' + formatNumber(finalTax);
-        document.getElementById('netoVal').innerText = '₪' + formatNumber(neto);
+            const bruto = pensionAmount / factor;
+            const pointValue = 242;
+            const points = (gender === 'female') ? 2.7 : 2.2;
+            const taxCredit = points * pointValue;
+
+            let tax = 0;
+            if (bruto > 7010) {
+                if (bruto <= 7010) tax = bruto * 0.1;
+                else if (bruto <= 10060) tax = (7010 * 0.1) + (bruto - 7010) * 0.14;
+                else if (bruto <= 16150) tax = (7010 * 0.1) + (3050 * 0.14) + (bruto - 10060) * 0.20;
+                else tax = (7010 * 0.1) + (3050 * 0.14) + (6090 * 0.20) + (bruto - 16150) * 0.31;
+            }
+
+            const finalTax = Math.max(0, tax - taxCredit);
+            const neto = bruto - finalTax;
+
+            document.getElementById('brutoVal').innerText = '₪' + formatNumber(bruto);
+            document.getElementById('taxVal').innerText = '₪' + formatNumber(finalTax);
+            document.getElementById('netoVal').innerText = '₪' + formatNumber(neto);
+        } else {
+            pensionBox.style.display = 'none';
+        }
+
+        // סיכום כולל
+        if (providentAmount > 0 || pensionAmount > 0) {
+            totalBox.style.display = 'block';
+            
+            const bridgeYears = retireAge - stopAge;
+            const bridgeMonths = bridgeYears * 12;
+            const monthlyProvident = providentAmount > 0 ? providentAmount / bridgeMonths : 0;
+            const monthlyPension = pensionAmount > 0 ? parseNumber(document.getElementById('netoVal').innerText.replace('₪', '')) : 0;
+            
+            // חישוב ממוצע משוקלל על פני כל התקופה (עד גיל 90 למשל)
+            const totalLifeYears = 90 - stopAge;
+            const avgMonthlyIncome = ((monthlyProvident * bridgeYears) + (monthlyPension * (totalLifeYears - bridgeYears))) / totalLifeYears;
+
+            document.getElementById('totalProvident').innerText = '₪' + formatNumber(monthlyProvident);
+            document.getElementById('totalPension').innerText = '₪' + formatNumber(monthlyPension);
+            document.getElementById('pensionStartAge').innerText = retireAge;
+            document.getElementById('avgIncome').innerText = '₪' + formatNumber(avgMonthlyIncome);
+        } else {
+            totalBox.style.display = 'none';
+        }
     }
 
     function saveToStorage() {
@@ -364,9 +449,12 @@
             dY: document.getElementById('dep_years').value,
             tY: document.getElementById('total_years').value,
             roi: document.getElementById('roi').value,
-            p_total: document.getElementById('totalSaved').value,
-            p_age: document.getElementById('retirementAge').value,
-            p_gender: document.getElementById('gender').value
+            pensionFund: document.getElementById('pensionFund').value,
+            providentFund: document.getElementById('providentFund').value,
+            stopAge: document.getElementById('stopDepositAge').value,
+            retireAge: document.getElementById('retirementAge').value,
+            withdrawals: document.getElementById('withdrawalCount').value,
+            gender: document.getElementById('gender').value
         };
         localStorage.setItem('salaryCalcData', JSON.stringify(data));
     }
@@ -383,12 +471,16 @@
             document.getElementById('dep_years').value = d.dY || "10";
             document.getElementById('total_years').value = d.tY || "20";
             document.getElementById('roi').value = d.roi || "3";
-            if(d.p_total) document.getElementById('totalSaved').value = d.p_total;
-            if(d.p_age) document.getElementById('retirementAge').value = d.p_age;
-            if(d.p_gender) document.getElementById('gender').value = d.p_gender;
+            
+            if(d.pensionFund) document.getElementById('pensionFund').value = d.pensionFund;
+            if(d.providentFund) document.getElementById('providentFund').value = d.providentFund;
+            if(d.stopAge) document.getElementById('stopDepositAge').value = d.stopAge;
+            if(d.retireAge) document.getElementById('retirementAge').value = d.retireAge;
+            if(d.withdrawals) document.getElementById('withdrawalCount').value = d.withdrawals;
+            if(d.gender) document.getElementById('gender').value = d.gender;
             
             if (d.bruto) handleSalaryInput(document.getElementById('bruto_display'));
-            if (d.p_total) calculatePension();
+            if (d.pensionFund || d.providentFund) calculateSplitPension();
         }
     }
 
