@@ -288,22 +288,38 @@
             top: 20px;
             left: 20px;
             background: white;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             font-size: 0.75rem;
             z-index: 100;
             transition: all 0.3s ease;
+            cursor: pointer;
+            max-width: 200px;
         }
 
-        .currency-widget.minimized {
-            padding: 8px 12px;
-            cursor: pointer;
+        .currency-widget:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .currency-widget:active {
+            transform: translateY(0);
         }
 
         .currency-rate {
             font-weight: bold;
             color: #007aff;
+        }
+
+        @media (max-width: 600px) {
+            .currency-widget {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                padding: 10px 12px;
+            }
         }
 
         /* Lazy Load Animation */
@@ -428,10 +444,23 @@
 </head>
 <body>
 
-<!-- Currency Converter Widget -->
-<div class="currency-widget" id="currencyWidget">
-    <div style="font-size: 0.7rem; opacity: 0.8;">שער דולר</div>
-    <div class="currency-rate" id="usdRate">טוען...</div>
+<!-- Currency & Economic Data Widget -->
+<div class="currency-widget" id="currencyWidget" onclick="toggleWidget()">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="flex: 1;">
+            <div style="font-size: 0.65rem; opacity: 0.7;">💱 דולר</div>
+            <div class="currency-rate" id="usdRate" style="font-size: 0.8rem; font-weight: bold;">טוען...</div>
+        </div>
+        <div style="flex: 1; border-right: 1px solid #e5e5ea; padding-right: 10px;">
+            <div style="font-size: 0.65rem; opacity: 0.7;">📈 אינפלציה</div>
+            <div id="inflationRate" style="font-size: 0.8rem; font-weight: bold; color: #ff9500;">טוען...</div>
+        </div>
+    </div>
+    <div id="widgetExpanded" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e5ea;">
+        <div style="font-size: 0.6rem; color: #8e8e93;">
+            <div id="widgetUpdateTime">עדכון: טוען...</div>
+        </div>
+    </div>
 </div>
 
 <!-- Progress Bar -->
@@ -690,7 +719,7 @@
         
         // Default values
         DEFAULTS: {
-            USD_RATE: 3.4,
+            USD_RATE: 3.6,
             INFLATION_RATE: 0.025,
             LIFE_EXPECTANCY: 90
         }
@@ -737,6 +766,15 @@
         }
     }
 
+    function toggleWidget() {
+        const expanded = document.getElementById('widgetExpanded');
+        if (expanded.style.display === 'none') {
+            expanded.style.display = 'block';
+        } else {
+            expanded.style.display = 'none';
+        }
+    }
+
     // ========== API INTEGRATIONS ==========
     
     /**
@@ -752,15 +790,18 @@
             if (data.rates && data.rates.ILS) {
                 APP_STATE.usdRate = data.rates.ILS;
                 APP_STATE.lastDataUpdate.usd = new Date().toISOString();
-                document.getElementById('usdRate').innerHTML = `$1 = ₪${APP_STATE.usdRate.toFixed(2)}`;
+                
+                // Update both displays
+                document.getElementById('usdRate').innerHTML = `₪${APP_STATE.usdRate.toFixed(2)}`;
                 updateDataStatus();
+                updateWidgetTime();
                 return true;
             }
             throw new Error('Invalid data structure');
         } catch (error) {
             console.warn('Failed to fetch USD rate, using default:', error);
             APP_STATE.usdRate = FINANCIAL_CONFIG.DEFAULTS.USD_RATE;
-            document.getElementById('usdRate').innerHTML = `$1 ≈ ₪${APP_STATE.usdRate.toFixed(2)}`;
+            document.getElementById('usdRate').innerHTML = `₪${APP_STATE.usdRate.toFixed(2)}*`;
             return false;
         }
     }
@@ -784,7 +825,11 @@
                     
                     APP_STATE.inflationRate = Math.max(0, Math.min(0.10, calculatedInflation));
                     APP_STATE.lastDataUpdate.inflation = new Date().toISOString();
+                    
+                    // Update displays
+                    document.getElementById('inflationRate').innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%`;
                     updateDataStatus();
+                    updateWidgetTime();
                     return true;
                 }
             }
@@ -798,7 +843,11 @@
                 if (wbData && wbData[1] && wbData[1][0]) {
                     APP_STATE.inflationRate = wbData[1][0].value / 100;
                     APP_STATE.lastDataUpdate.inflation = new Date().toISOString();
+                    
+                    // Update displays
+                    document.getElementById('inflationRate').innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%`;
                     updateDataStatus();
+                    updateWidgetTime();
                     return true;
                 }
             }
@@ -807,8 +856,31 @@
         } catch (error) {
             console.warn('Failed to fetch inflation rate, using default 2.5%:', error);
             APP_STATE.inflationRate = FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
+            document.getElementById('inflationRate').innerHTML = `${(APP_STATE.inflationRate * 100).toFixed(1)}%*`;
             return false;
         }
+    }
+
+    /**
+     * Update widget expanded time display
+     */
+    function updateWidgetTime() {
+        const widgetTime = document.getElementById('widgetUpdateTime');
+        if (!widgetTime) return;
+        
+        const formatTime = (isoString) => {
+            if (!isoString) return 'לא זמין';
+            const date = new Date(isoString);
+            return date.toLocaleString('he-IL', { 
+                day: '2-digit', 
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+        
+        const lastUpdate = APP_STATE.lastDataUpdate.usd || APP_STATE.lastDataUpdate.inflation;
+        widgetTime.innerHTML = `עדכון אחרון: ${formatTime(lastUpdate)}`;
     }
 
     /**
@@ -819,27 +891,52 @@
         if (!statusDiv) return;
         
         const formatDate = (isoString) => {
-            if (!isoString) return 'לא זמין';
+            if (!isoString) return '<span style="color: #ff3b30;">לא זמין</span>';
             const date = new Date(isoString);
-            return date.toLocaleString('he-IL', { 
+            const now = new Date();
+            const diffMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            let timeAgo = '';
+            if (diffMinutes < 1) timeAgo = 'עכשיו';
+            else if (diffMinutes < 60) timeAgo = `לפני ${diffMinutes} דק'`;
+            else if (diffMinutes < 1440) timeAgo = `לפני ${Math.floor(diffMinutes / 60)} שעות`;
+            else timeAgo = `לפני ${Math.floor(diffMinutes / 1440)} ימים`;
+            
+            return `${date.toLocaleString('he-IL', { 
                 day: '2-digit', 
-                month: '2-digit', 
-                year: 'numeric',
+                month: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
-            });
+            })} <span style="color: #34c759;">(${timeAgo})</span>`;
         };
         
+        const usdStatus = APP_STATE.lastDataUpdate.usd ? '✅' : '⚠️';
+        const inflationStatus = APP_STATE.lastDataUpdate.inflation ? '✅' : '⚠️';
+        
         statusDiv.innerHTML = `
-            <div style="font-size: 0.7rem; color: #8e8e93; padding: 10px; background: #f8f8f8; border-radius: 8px; margin-top: 10px;">
-                <div style="font-weight: bold; margin-bottom: 5px;">📊 סטטוס נתונים:</div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                    <span>💱 שער דולר:</span>
-                    <span>${formatDate(APP_STATE.lastDataUpdate.usd)}</span>
+            <div style="font-size: 0.75rem; color: #3a3a3c; padding: 15px; background: linear-gradient(135deg, #f8f8f8, #ffffff); border-radius: 12px; border: 1px solid #e5e5ea;">
+                <div style="font-weight: bold; margin-bottom: 12px; text-align: center; color: #007aff; font-size: 0.85rem;">
+                    📊 סטטוס נתונים כלכליים
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>📈 אינפלציה:</span>
-                    <span>${formatDate(APP_STATE.lastDataUpdate.inflation)} (${(APP_STATE.inflationRate * 100).toFixed(1)}%)</span>
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span>${usdStatus}</span>
+                        <span style="font-weight: 600;">💱 שער דולר:</span>
+                    </div>
+                    <div style="text-align: left; direction: ltr;">
+                        ₪${APP_STATE.usdRate.toFixed(2)} | ${formatDate(APP_STATE.lastDataUpdate.usd)}
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span>${inflationStatus}</span>
+                        <span style="font-weight: 600;">📈 אינפלציה:</span>
+                    </div>
+                    <div style="text-align: left;">
+                        ${(APP_STATE.inflationRate * 100).toFixed(1)}% | ${formatDate(APP_STATE.lastDataUpdate.inflation)}
+                    </div>
+                </div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e5ea; font-size: 0.65rem; color: #8e8e93; text-align: center;">
+                    * נתונים מתעדכנים אוטומטית מ-APIs חיצוניים | ${APP_STATE.lastDataUpdate.usd || APP_STATE.lastDataUpdate.inflation ? 'מקור: ExchangeRate-API, CBS' : 'משתמש בערכי ברירת מחדל'}
                 </div>
             </div>
         `;
