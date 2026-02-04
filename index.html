@@ -150,6 +150,7 @@
 
 <div class="card">
     <h2 class="salary-title">מחשבון שכר חודשי</h2>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 2.0</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -178,9 +179,14 @@
         <div><label>הפקדת פנסיה:</label><input type="text" id="p_mon" oninput="formatAndCalc(this)"></div>
         <div><label>הפקדת קה"ש:</label><input type="text" id="k_mon" oninput="formatAndCalc(this)"></div>
         <div style="grid-column: span 2;">
-            <button onclick="clearDepositsAndSync()" style="width: 100%; padding: 8px; background: #ff3b30; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px;">
-                נקה הפקדות חודשיות
-            </button>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="clearDepositsOnly()" style="flex: 1; padding: 8px; background: #ff9500; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px;">
+                    🗑️ נקה הפקדות
+                </button>
+                <button onclick="clearAllSavings()" style="flex: 1; padding: 8px; background: #ff3b30; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px;">
+                    ❌ איפוס מלא
+                </button>
+            </div>
         </div>
         <div><label>שנות הפקדה:</label><input type="number" id="dep_years" oninput="formatAndCalc(this)" value="10"></div>
         <div><label>שנות חיסכון:</label><input type="number" id="total_years" oninput="formatAndCalc(this)" value="20"></div>
@@ -260,6 +266,17 @@
             ** קרן השתלמות מחושבת כמשיכות בודדות - ניתן להגדיר תדירות.
         </div>
     </div>
+    
+    <button onclick="clearPensionCalc()" style="width: 100%; padding: 10px; background: #ff3b30; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 15px;">
+        🗑️ נקה חישוב פרישה
+    </button>
+</div>
+
+<div style="text-align: center; margin: 30px 0 20px 0;">
+    <button onclick="resetAllData()" style="padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+        🔄 איפוס כללי לכל המחשבונים
+    </button>
+    <div style="font-size: 0.7rem; color: #8e8e93; margin-top: 8px;">ימחק את כל הנתונים השמורים</div>
 </div>
 
 <script>
@@ -322,6 +339,27 @@
         document.getElementById('res_p').innerText = '₪' + formatNumber(finalP);
         document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
+    }
+
+    function clearDepositsOnly() {
+        document.getElementById('p_mon').value = "";
+        document.getElementById('k_mon').value = "";
+        calcSavings();
+        saveToStorage();
+    }
+
+    function clearAllSavings() {
+        if (confirm('האם למחוק את כל נתוני החיסכון? (צבירה קיימת והפקדות חודשיות)')) {
+            document.getElementById('p_start').value = "";
+            document.getElementById('k_start').value = "";
+            document.getElementById('p_mon').value = "";
+            document.getElementById('k_mon').value = "";
+            document.getElementById('dep_years').value = "10";
+            document.getElementById('total_years').value = "20";
+            document.getElementById('roi').value = "3";
+            calcSavings();
+            saveToStorage();
+        }
     }
 
     function clearDepositsAndSync() {
@@ -436,6 +474,65 @@
             document.getElementById('avgIncome').innerText = '₪' + formatNumber(avgMonthlyIncome);
         } else {
             totalBox.style.display = 'none';
+        }
+    }
+
+    function resetAllData() {
+        if (confirm('⚠️ האם אתה בטוח שברצונך לאפס את כל המחשבונים?\n\nפעולה זו תמחק:\n• נתוני שכר\n• תחזית חיסכון\n• חישוב פרישה\n\nהפעולה בלתי הפיכה!')) {
+            // מחיקת כל השדות - מחשבון שכר
+            document.getElementById('bruto_display').value = "";
+            document.getElementById('salaryResultBox').style.display = 'none';
+            
+            // מחיקת כל השדות - חיסכון
+            document.getElementById('p_start').value = "";
+            document.getElementById('k_start').value = "";
+            document.getElementById('p_mon').value = "";
+            document.getElementById('k_mon').value = "";
+            document.getElementById('dep_years').value = "10";
+            document.getElementById('total_years').value = "20";
+            document.getElementById('roi').value = "3";
+            
+            // מחיקת כל השדות - פרישה
+            document.getElementById('pensionFund').value = "";
+            document.getElementById('providentFund').value = "";
+            document.getElementById('stopDepositAge').value = "57";
+            document.getElementById('retirementAge').value = "67";
+            document.getElementById('withdrawalCount').value = "12";
+            document.getElementById('gender').value = "male";
+            
+            document.getElementById('providentResultBox').style.display = 'none';
+            document.getElementById('pensionResultBox').style.display = 'none';
+            document.getElementById('totalIncomeBox').style.display = 'none';
+            
+            // מחיקת localStorage
+            localStorage.removeItem('salaryCalcData');
+            
+            // איפוס משתנים גלובליים
+            currentP = 0;
+            currentK = 0;
+            lastCalculatedPensionTotal = 0;
+            
+            // חישוב מחדש
+            calcSavings();
+            
+            alert('✅ כל הנתונים נמחקו בהצלחה!');
+        }
+    }
+
+    function clearPensionCalc() {
+        if (confirm('האם למחוק את כל נתוני חישוב הפרישה?')) {
+            document.getElementById('pensionFund').value = "";
+            document.getElementById('providentFund').value = "";
+            document.getElementById('stopDepositAge').value = "57";
+            document.getElementById('retirementAge').value = "67";
+            document.getElementById('withdrawalCount').value = "12";
+            document.getElementById('gender').value = "male";
+            
+            document.getElementById('providentResultBox').style.display = 'none';
+            document.getElementById('pensionResultBox').style.display = 'none';
+            document.getElementById('totalIncomeBox').style.display = 'none';
+            
+            saveToStorage();
         }
     }
 
