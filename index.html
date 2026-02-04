@@ -174,6 +174,35 @@
             opacity: 0.8;
             margin-top: 5px;
         }
+        
+        /* Toggle button for inflation erosion */
+        .toggle-erosion-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+        
+        .toggle-erosion-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .toggle-erosion-btn:active {
+            transform: translateY(0);
+        }
+        
+        .erosion-box.hidden {
+            display: none !important;
+        }
 
         /* Scroll to Top Button */
         #scrollTopBtn {
@@ -213,7 +242,7 @@
             border-radius: 15px;
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            z-index: 100;
+            z-index: 1001;
             max-width: 480px;
             width: 100%;
         }
@@ -626,8 +655,13 @@
         <div class="s-line"><span>קה"ש צפויה:</span> <span id="res_k"></span></div>
         <div class="s-line total-highlight"><span>הון בפרישה:</span> <span id="res_total"></span></div>
         
+        <!-- Toggle Button for Erosion -->
+        <button class="toggle-erosion-btn" id="toggleSavingsErosion" onclick="toggleSavingsErosion()" style="display: none;">
+            💸 <span id="toggleSavingsErosionText">הצג ערך ריאלי (לאחר אינפלציה)</span>
+        </button>
+        
         <!-- Inflation Erosion Display -->
-        <div class="erosion-box" id="savingsErosionBox" style="display: none;">
+        <div class="erosion-box hidden" id="savingsErosionBox">
             <div class="erosion-title">💸 ערך ריאלי (לאחר שחיקה אינפלציונית)</div>
             <div class="erosion-value" id="savingsRealValue"></div>
             <div class="erosion-note">
@@ -732,8 +766,13 @@
         <div class="s-line"><span>מפנסיה (מגיל <span id="pensionStartAge"></span>):</span> <span id="totalPension"></span></div>
         <div class="s-line total-highlight"><span>סה"כ הכנסה ממוצעת:</span> <span id="avgIncome"></span></div>
         
+        <!-- Toggle Button for Erosion -->
+        <button class="toggle-erosion-btn" id="togglePensionErosion" onclick="togglePensionErosion()" style="display: none;">
+            💸 <span id="togglePensionErosionText">הצג ערך ריאלי (לאחר אינפלציה)</span>
+        </button>
+        
         <!-- Inflation Erosion Display -->
-        <div class="erosion-box" id="pensionErosionBox" style="display: none;">
+        <div class="erosion-box hidden" id="pensionErosionBox">
             <div class="erosion-title">💸 ערך ריאלי של החיסכון (לאחר שחיקה אינפלציונית)</div>
             <div class="erosion-value">
                 <div style="margin-bottom: 5px;">פנסיה: <span id="pensionRealValue"></span></div>
@@ -1542,23 +1581,25 @@
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
         
         // Calculate and display real value after inflation erosion
+        const toggleBtn = document.getElementById('toggleSavingsErosion');
         if ((finalP + finalK) > 0 && tY > 0) {
             const inflationRate = APP_STATE.inflationRate || FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
             const totalNominal = finalP + finalK;
             const realValue = totalNominal / Math.pow(1 + inflationRate, tY);
             
-            const erosionBox = document.getElementById('savingsErosionBox');
             const realValueDisplay = document.getElementById('savingsRealValue');
             const inflationRateDisplay = document.getElementById('savingsInflationRate');
             
-            if (erosionBox && realValueDisplay && inflationRateDisplay) {
-                erosionBox.style.display = 'block';
+            if (realValueDisplay && inflationRateDisplay) {
                 realValueDisplay.innerText = '₪' + formatNumber(realValue);
                 inflationRateDisplay.innerText = (inflationRate * 100).toFixed(1);
             }
+            
+            // Show toggle button
+            if (toggleBtn) toggleBtn.style.display = 'block';
         } else {
-            const erosionBox = document.getElementById('savingsErosionBox');
-            if (erosionBox) erosionBox.style.display = 'none';
+            // Hide toggle button when no data
+            if (toggleBtn) toggleBtn.style.display = 'none';
         }
         
         // Draw chart and update inflation
@@ -1711,32 +1752,37 @@
             // Calculate and display real value after inflation erosion
             const currentAge = 30; // Default current age, can be made configurable
             const yearsUntilRetirement = stopAge - currentAge;
+            const toggleBtn = document.getElementById('togglePensionErosion');
             
             if (yearsUntilRetirement > 0) {
                 const inflationRate = APP_STATE.inflationRate || FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
                 const pensionRealValue = pensionAmount / Math.pow(1 + inflationRate, yearsUntilRetirement);
                 const providentRealValue = providentAmount / Math.pow(1 + inflationRate, yearsUntilRetirement);
                 
-                const erosionBox = document.getElementById('pensionErosionBox');
                 const pensionRealDisplay = document.getElementById('pensionRealValue');
                 const providentRealDisplay = document.getElementById('providentRealValue');
                 const inflationRateDisplay = document.getElementById('pensionInflationRate');
                 
-                if (erosionBox && pensionRealDisplay && providentRealDisplay && inflationRateDisplay) {
-                    erosionBox.style.display = 'block';
+                if (pensionRealDisplay && providentRealDisplay && inflationRateDisplay) {
                     pensionRealDisplay.innerText = '₪' + formatNumber(pensionRealValue);
                     providentRealDisplay.innerText = '₪' + formatNumber(providentRealValue);
                     inflationRateDisplay.innerText = (inflationRate * 100).toFixed(1);
                 }
+                
+                // Show toggle button
+                if (toggleBtn) toggleBtn.style.display = 'block';
             } else {
-                const erosionBox = document.getElementById('pensionErosionBox');
-                if (erosionBox) erosionBox.style.display = 'none';
+                // Hide toggle button when no valid data
+                if (toggleBtn) toggleBtn.style.display = 'none';
             }
         } else {
             totalBox.style.display = 'none';
-            const erosionBox = document.getElementById('pensionErosionBox');
-            if (erosionBox) erosionBox.style.display = 'none';
+            const toggleBtn = document.getElementById('togglePensionErosion');
+            if (toggleBtn) toggleBtn.style.display = 'none';
         }
+        
+        // Save data to localStorage
+        saveToStorage();
     }
 
     function resetAllData() {
@@ -1867,6 +1913,33 @@
         // Make first card visible immediately
         document.querySelector('.card').classList.add('visible');
     };
+    
+    // ========== TOGGLE EROSION DISPLAY ==========
+    function toggleSavingsErosion() {
+        const erosionBox = document.getElementById('savingsErosionBox');
+        const toggleText = document.getElementById('toggleSavingsErosionText');
+        
+        if (erosionBox.classList.contains('hidden')) {
+            erosionBox.classList.remove('hidden');
+            toggleText.innerText = 'הסתר ערך ריאלי';
+        } else {
+            erosionBox.classList.add('hidden');
+            toggleText.innerText = 'הצג ערך ריאלי (לאחר אינפלציה)';
+        }
+    }
+    
+    function togglePensionErosion() {
+        const erosionBox = document.getElementById('pensionErosionBox');
+        const toggleText = document.getElementById('togglePensionErosionText');
+        
+        if (erosionBox.classList.contains('hidden')) {
+            erosionBox.classList.remove('hidden');
+            toggleText.innerText = 'הסתר ערך ריאלי';
+        } else {
+            erosionBox.classList.add('hidden');
+            toggleText.innerText = 'הצג ערך ריאלי (לאחר אינפלציה)';
+        }
+    }
 </script>
 </body>
 </html>
