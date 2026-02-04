@@ -144,13 +144,296 @@
             line-height: 1.4; 
             text-align: center;
         }
+
+        /* Scroll to Top Button */
+        #scrollTopBtn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,122,255,0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #scrollTopBtn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #scrollTopBtn:active {
+            transform: scale(0.95);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e5ea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            border: 3px solid #e5e5ea;
+        }
+
+        .step-circle.active {
+            background: #007aff;
+            border-color: #007aff;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0,122,255,0.5);
+        }
+
+        .step-circle.completed {
+            background: #34c759;
+            border-color: #34c759;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            color: #8e8e93;
+            font-weight: 600;
+        }
+
+        .step-label.active {
+            color: #007aff;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            right: 25%;
+            left: 25%;
+            height: 3px;
+            background: #e5e5ea;
+            z-index: 1;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007aff, #5856d6);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Currency Converter Widget */
+        .currency-widget {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 0.75rem;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .currency-widget.minimized {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .currency-rate {
+            font-weight: bold;
+            color: #007aff;
+        }
+
+        /* Lazy Load Animation */
+        .card {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Micro Animations */
+        input:active, select:active, button:active {
+            transform: scale(0.98);
+        }
+
+        button {
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Charts Container */
+        .chart-container {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .chart-container.visible {
+            display: block;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Goals Section */
+        .goals-section {
+            background: linear-gradient(135deg, #ff9500, #ff6b6b);
+            color: white;
+            padding: 18px;
+            border-radius: 18px;
+            margin-top: 20px;
+        }
+
+        .goal-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .goal-input-group input {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .goal-input-group input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .goal-result {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        /* Inflation Simulator */
+        .inflation-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 18px;
+            border-radius: 18px;
+            margin-top: 20px;
+        }
+
+        .inflation-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .inflation-results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .inflation-card {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .inflation-year {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .inflation-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
 
+<!-- Currency Converter Widget -->
+<div class="currency-widget" id="currencyWidget">
+    <div style="font-size: 0.7rem; opacity: 0.8;">שער דולר</div>
+    <div class="currency-rate" id="usdRate">טוען...</div>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-container">
+    <div class="progress-steps">
+        <div class="progress-line">
+            <div class="progress-line-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-step" data-step="1">
+            <div class="step-circle active" id="step1">💰</div>
+            <div class="step-label active">שכר</div>
+        </div>
+        <div class="progress-step" data-step="2">
+            <div class="step-circle" id="step2">📈</div>
+            <div class="step-label">חיסכון</div>
+        </div>
+        <div class="progress-step" data-step="3">
+            <div class="step-circle" id="step3">🏖️</div>
+            <div class="step-label">פרישה</div>
+        </div>
+    </div>
+</div>
+
+<!-- Scroll to Top Button -->
+<button id="scrollTopBtn" onclick="scrollToTop()">↑</button>
+
 <div class="card">
     <h2 class="salary-title">מחשבון שכר חודשי</h2>
-    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 2.0</div>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.0</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -197,6 +480,34 @@
         <div class="s-line"><span>קה"ש צפויה:</span> <span id="res_k"></span></div>
         <div class="s-line total-highlight"><span>הון בפרישה:</span> <span id="res_total"></span></div>
         <button class="btn-pension-transfer" onclick="transferToPensionCalc()">💰 העבר פנסיה צפויה לחישוב קצבה</button>
+    </div>
+    
+    <!-- Goals Section -->
+    <div class="goals-section">
+        <div style="text-align: center; font-size: 1rem; font-weight: bold; margin-bottom: 10px;">🎯 יעדי חיסכון</div>
+        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 10px;">כמה צריך לחסוך בחודש כדי להגיע ליעד?</div>
+        <div class="goal-input-group">
+            <input type="text" id="goalAmount" placeholder="יעד (למשל: 1,000,000)" oninput="calculateGoal(this)" inputmode="numeric">
+            <input type="number" id="goalYears" placeholder="שנים" value="10" oninput="calculateGoal()">
+        </div>
+        <div class="goal-result" id="goalResult" style="display: none;"></div>
+    </div>
+    
+    <!-- Inflation Simulator -->
+    <div class="inflation-section">
+        <div style="text-align: center; font-size: 1rem; font-weight: bold; margin-bottom: 10px;">📈 סימולטור אינפלציה</div>
+        <div style="font-size: 0.85rem; opacity: 0.9;">איך האינפלציה תשפיע על החיסכון שלך?</div>
+        <div style="margin-top: 10px;">
+            <label style="font-size: 0.85rem;">אחוז אינפלציה שנתי: <span id="inflationValue">3</span>%</label>
+            <input type="range" class="inflation-slider" id="inflationSlider" min="0" max="10" step="0.5" value="3" oninput="updateInflation()">
+        </div>
+        <div class="inflation-results" id="inflationResults"></div>
+    </div>
+    
+    <!-- Chart Container -->
+    <div class="chart-container" id="savingsChart">
+        <div style="text-align: center; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; color: #5856d6;">📊 התפתחות החיסכון לאורך זמן</div>
+        <canvas id="chartCanvas"></canvas>
     </div>
 </div>
 
@@ -281,9 +592,315 @@
 
 <script>
     let currentP = 0, currentK = 0, lastCalculatedPensionTotal = 0;
+    let usdRate = 3.6; // Default rate
 
     function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
     function parseNumber(str) { return parseFloat(String(str).replace(/,/g, '')) || 0; }
+
+    // ========== SCROLL TO TOP ==========
+    window.addEventListener('scroll', function() {
+        const scrollBtn = document.getElementById('scrollTopBtn');
+        if (window.pageYOffset > 300) {
+            scrollBtn.classList.add('show');
+        } else {
+            scrollBtn.classList.remove('show');
+        }
+        updateProgressBar();
+    });
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========== PROGRESS BAR ==========
+    function updateProgressBar() {
+        const cards = document.querySelectorAll('.card');
+        const windowHeight = window.innerHeight;
+        const scrollTop = window.pageYOffset;
+        
+        let activeStep = 1;
+        
+        cards.forEach((card, index) => {
+            const rect = card.getBoundingClientRect();
+            if (rect.top < windowHeight / 2) {
+                activeStep = index + 1;
+            }
+        });
+
+        // Update step circles
+        for (let i = 1; i <= 3; i++) {
+            const circle = document.getElementById(`step${i}`);
+            const label = document.querySelector(`[data-step="${i}"] .step-label`);
+            
+            if (i < activeStep) {
+                circle.classList.add('completed');
+                circle.classList.remove('active');
+                circle.innerHTML = '✓';
+            } else if (i === activeStep) {
+                circle.classList.add('active');
+                circle.classList.remove('completed');
+                label.classList.add('active');
+                if (i === 1) circle.innerHTML = '💰';
+                if (i === 2) circle.innerHTML = '📈';
+                if (i === 3) circle.innerHTML = '🏖️';
+            } else {
+                circle.classList.remove('active', 'completed');
+                label.classList.remove('active');
+                if (i === 1) circle.innerHTML = '💰';
+                if (i === 2) circle.innerHTML = '📈';
+                if (i === 3) circle.innerHTML = '🏖️';
+            }
+        }
+
+        // Update progress line
+        const progress = ((activeStep - 1) / 2) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+    }
+
+    // ========== CURRENCY CONVERTER ==========
+    async function fetchUSDRate() {
+        try {
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+            const data = await response.json();
+            usdRate = data.rates.ILS || 3.6;
+            document.getElementById('usdRate').innerHTML = `$1 = ₪${usdRate.toFixed(2)}`;
+        } catch (error) {
+            console.error('Failed to fetch USD rate:', error);
+            document.getElementById('usdRate').innerHTML = `$1 ≈ ₪${usdRate.toFixed(2)}`;
+        }
+    }
+
+    // ========== LAZY LOADING ==========
+    function setupLazyLoading() {
+        const cards = document.querySelectorAll('.card');
+        
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '50px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        cards.forEach(card => {
+            observer.observe(card);
+        });
+    }
+
+    // ========== GOALS CALCULATOR ==========
+    function calculateGoal(input) {
+        if (input && input.type === "text") {
+            input.value = formatNumber(parseNumber(input.value));
+        }
+        
+        const goalAmount = parseNumber(document.getElementById('goalAmount').value);
+        const goalYears = parseInt(document.getElementById('goalYears').value) || 10;
+        const roi = parseFloat(document.getElementById('roi').value) / 100 || 0.03;
+        const resultDiv = document.getElementById('goalResult');
+        
+        if (!goalAmount || goalAmount <= 0) {
+            resultDiv.style.display = 'none';
+            return;
+        }
+        
+        resultDiv.style.display = 'block';
+        
+        // Calculate required monthly deposit
+        const months = goalYears * 12;
+        const monthlyRate = Math.pow(1 + roi, 1/12) - 1;
+        
+        let requiredMonthly;
+        if (monthlyRate > 0) {
+            requiredMonthly = goalAmount / (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
+        } else {
+            requiredMonthly = goalAmount / months;
+        }
+        
+        resultDiv.innerHTML = `
+            <div style="font-size: 0.85rem; opacity: 0.9;">כדי להגיע ל-₪${formatNumber(goalAmount)} בעוד ${goalYears} שנים:</div>
+            <div style="font-size: 1.3rem; margin-top: 8px;">צריך לחסוך ₪${formatNumber(requiredMonthly)} לחודש</div>
+            <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 8px;">בהנחת תשואה של ${(roi*100).toFixed(1)}% שנתי</div>
+        `;
+    }
+
+    // ========== INFLATION SIMULATOR ==========
+    function updateInflation() {
+        const inflationRate = parseFloat(document.getElementById('inflationSlider').value) / 100;
+        document.getElementById('inflationValue').innerText = (inflationRate * 100).toFixed(1);
+        
+        const finalP = lastCalculatedPensionTotal;
+        const finalK = parseNumber(document.getElementById('res_k').innerText.replace('₪', ''));
+        const total = finalP + finalK;
+        
+        if (total <= 0) {
+            document.getElementById('inflationResults').innerHTML = '<div style="grid-column: span 2; text-align: center; opacity: 0.7;">חסר נתוני חיסכון</div>';
+            return;
+        }
+        
+        const resultsHTML = [5, 10, 15, 20].map(years => {
+            const realValue = total / Math.pow(1 + inflationRate, years);
+            return `
+                <div class="inflation-card">
+                    <div class="inflation-year">בעוד ${years} שנים</div>
+                    <div class="inflation-value">₪${formatNumber(realValue)}</div>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('inflationResults').innerHTML = resultsHTML;
+    }
+
+    // ========== CHART DRAWING ==========
+    function drawSavingsChart() {
+        const canvas = document.getElementById('chartCanvas');
+        if (!canvas) return;
+        
+        const pS = parseNumber(document.getElementById('p_start').value);
+        const kS = parseNumber(document.getElementById('k_start').value);
+        const pM = parseNumber(document.getElementById('p_mon').value);
+        const kM = parseNumber(document.getElementById('k_mon').value);
+        const tY = parseInt(document.getElementById('total_years').value) || 20;
+        const roi = parseFloat(document.getElementById('roi').value) / 100 || 0.03;
+        
+        if ((pS + kS + pM + kM) <= 0) {
+            document.getElementById('savingsChart').classList.remove('visible');
+            return;
+        }
+        
+        document.getElementById('savingsChart').classList.add('visible');
+        
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width = canvas.offsetWidth * 2; // Retina
+        const height = canvas.height = 400;
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        // Calculate data points
+        const dataPoints = [];
+        const mRoi = Math.pow(1 + roi, 1/12) - 1;
+        
+        for (let year = 0; year <= tY; year++) {
+            const months = year * 12;
+            let pension = pS * Math.pow(1 + mRoi, months);
+            let provident = kS * Math.pow(1 + mRoi, months);
+            
+            if (mRoi > 0) {
+                pension += pM * ((Math.pow(1 + mRoi, months) - 1) / mRoi);
+                provident += kM * ((Math.pow(1 + mRoi, months) - 1) / mRoi);
+            } else {
+                pension += pM * months;
+                provident += kM * months;
+            }
+            
+            dataPoints.push({ year, pension, provident, total: pension + provident });
+        }
+        
+        // Find max value for scaling
+        const maxValue = Math.max(...dataPoints.map(d => d.total));
+        
+        // Draw grid
+        ctx.strokeStyle = '#e5e5ea';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 5; i++) {
+            const y = (height - 60) * (i / 5) + 20;
+            ctx.beginPath();
+            ctx.moveTo(40, y);
+            ctx.lineTo(width - 20, y);
+            ctx.stroke();
+        }
+        
+        // Draw axes
+        ctx.strokeStyle = '#8e8e93';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(40, 20);
+        ctx.lineTo(40, height - 40);
+        ctx.lineTo(width - 20, height - 40);
+        ctx.stroke();
+        
+        // Draw area chart
+        const xStep = (width - 60) / tY;
+        
+        // Pension area
+        ctx.fillStyle = 'rgba(0, 122, 255, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(40, height - 40);
+        dataPoints.forEach((d, i) => {
+            const x = 40 + i * xStep;
+            const y = height - 40 - (d.pension / maxValue) * (height - 60);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.lineTo(40 + tY * xStep, height - 40);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Provident area
+        ctx.fillStyle = 'rgba(88, 86, 214, 0.3)';
+        ctx.beginPath();
+        dataPoints.forEach((d, i) => {
+            const x = 40 + i * xStep;
+            const yPension = height - 40 - (d.pension / maxValue) * (height - 60);
+            const yTotal = height - 40 - (d.total / maxValue) * (height - 60);
+            if (i === 0) ctx.moveTo(x, yPension);
+            ctx.lineTo(x, yTotal);
+        });
+        for (let i = dataPoints.length - 1; i >= 0; i--) {
+            const x = 40 + i * xStep;
+            const y = height - 40 - (dataPoints[i].pension / maxValue) * (height - 60);
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw line
+        ctx.strokeStyle = '#5856d6';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        dataPoints.forEach((d, i) => {
+            const x = 40 + i * xStep;
+            const y = height - 40 - (d.total / maxValue) * (height - 60);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        
+        // Draw labels
+        ctx.fillStyle = '#3a3a3c';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        
+        // X-axis labels
+        [0, tY/4, tY/2, 3*tY/4, tY].forEach(year => {
+            const x = 40 + (year / tY) * (width - 60);
+            ctx.fillText(`${Math.round(year)}`, x, height - 15);
+        });
+        
+        // Y-axis labels
+        ctx.textAlign = 'left';
+        for (let i = 0; i <= 5; i++) {
+            const value = (maxValue / 5) * (5 - i);
+            const y = (height - 60) * (i / 5) + 25;
+            ctx.fillText(`${formatNumber(value/1000)}K`, 5, y);
+        }
+        
+        // Legend
+        ctx.fillStyle = '#007aff';
+        ctx.fillRect(width - 180, 30, 20, 15);
+        ctx.fillStyle = '#3a3a3c';
+        ctx.font = '18px Arial';
+        ctx.fillText('פנסיה', width - 155, 42);
+        
+        ctx.fillStyle = '#5856d6';
+        ctx.fillRect(width - 180, 55, 20, 15);
+        ctx.fillStyle = '#3a3a3c';
+        ctx.fillText('קה"ש', width - 155, 67);
+    }
 
     function handleSalaryInput(input) {
         let b = parseNumber(input.value);
@@ -339,6 +956,11 @@
         document.getElementById('res_p').innerText = '₪' + formatNumber(finalP);
         document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
+        
+        // Draw chart and update inflation
+        drawSavingsChart();
+        updateInflation();
+        calculateGoal();
     }
 
     function clearDepositsOnly() {
@@ -583,7 +1205,13 @@
 
     window.onload = function() { 
         loadFromStorage(); 
-        calcSavings(); 
+        calcSavings();
+        fetchUSDRate();
+        setupLazyLoading();
+        updateProgressBar();
+        
+        // Make first card visible immediately
+        document.querySelector('.card').classList.add('visible');
     };
 </script>
 </body>
