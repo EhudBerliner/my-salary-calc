@@ -460,7 +460,7 @@
 
 <div class="card">
     <h2 class="salary-title">מחשבון שכר חודשי</h2>
-    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.1</div>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.1 - משודרגת</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -620,9 +620,94 @@
     <div style="font-size: 0.7rem; color: #8e8e93; margin-top: 8px;">ימחק את כל הנתונים השמורים</div>
 </div>
 
+<!-- Data Status Display -->
+<div style="max-width: 480px; width: 100%; margin: 0 auto 30px;">
+    <div id="dataStatus"></div>
+</div>
+
 <script>
-    let currentP = 0, currentK = 0, lastCalculatedPensionTotal = 0;
-    let usdRate = 3.6; // Default rate
+    /**
+     * =====================================================
+     * SALARY & PENSION CALCULATOR v3.1
+     * =====================================================
+     * 
+     * Architecture: Data-driven with centralized configuration
+     * 
+     * Key Features:
+     * - Progressive tax calculation using configurable brackets
+     * - Real-time USD exchange rate integration
+     * - Automatic inflation rate fetching from economic APIs
+     * - Separation of business logic from UI
+     * - State management pattern
+     * 
+     * Last Updated: 2026-02-04
+     * =====================================================
+     */
+
+    // ========== CENTRALIZED CONFIGURATION ==========
+    const FINANCIAL_CONFIG = {
+        // Tax brackets (Israeli 2024)
+        TAX_BRACKETS: [
+            { limit: 7010, rate: 0.10 },
+            { limit: 10060, rate: 0.14 },
+            { limit: 15712, rate: 0.20 },
+            { limit: 22160, rate: 0.31 },
+            { limit: 37970, rate: 0.35 },
+            { limit: 54300, rate: 0.47 },
+            { limit: Infinity, rate: 0.50 }
+        ],
+        
+        // Healthcare tax threshold and rate
+        HEALTHCARE_TAX: {
+            threshold: 15712,
+            employeeRate: 0.075,
+            employerShare: 0.35
+        },
+        
+        // Social security deductions
+        DEDUCTIONS: {
+            BTL_RATE: 0.067,                    // Bituach Leumi + Health
+            EMPLOYEE_PENSION: 0.06,              // Employee pension contribution
+            EMPLOYEE_STUDY_FUND: 0.025,          // Employee provident fund
+            EMPLOYER_PENSION: 0.065,             // Employer pension contribution
+            EMPLOYER_STUDY_FUND: 0.075,          // Employer provident fund
+            TOTAL_PENSION_DEDUCTION: 0.085       // Total pension deduction from salary
+        },
+        
+        // Tax credits
+        TAX_CREDITS: {
+            POINT_VALUE: 242,
+            BASE_POINTS_MALE: 2.25,
+            BASE_POINTS_FEMALE: 2.75
+        },
+        
+        // Pension conversion factors
+        PENSION_FACTORS: {
+            YOUNG: { maxAge: 59, factor: 220 },
+            STANDARD: { maxAge: 70, factor: 200 },
+            OLD: { maxAge: Infinity, factor: 180 }
+        },
+        
+        // Default values
+        DEFAULTS: {
+            USD_RATE: 3.6,
+            INFLATION_RATE: 0.025,
+            LIFE_EXPECTANCY: 90
+        }
+    };
+
+    // ========== STATE MANAGEMENT ==========
+    const APP_STATE = {
+        currentP: 0,
+        currentK: 0,
+        lastCalculatedPensionTotal: 0,
+        usdRate: FINANCIAL_CONFIG.DEFAULTS.USD_RATE,
+        inflationRate: FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE,
+        lastDataUpdate: {
+            usd: null,
+            inflation: null
+        }
+    };
 
     function formatNumber(num) { return Math.round(num).toLocaleString('en-US'); }
     function parseNumber(str) { return parseFloat(String(str).replace(/,/g, '')) || 0; }
@@ -650,6 +735,114 @@
             const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
+    }
+
+    // ========== API INTEGRATIONS ==========
+    
+    /**
+     * Fetch USD to ILS exchange rate from public API
+     * Falls back to default value if API fails
+     */
+    async function fetchUSDRate() {
+        try {
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+            if (!response.ok) throw new Error('API response not OK');
+            
+            const data = await response.json();
+            if (data.rates && data.rates.ILS) {
+                APP_STATE.usdRate = data.rates.ILS;
+                APP_STATE.lastDataUpdate.usd = new Date().toISOString();
+                document.getElementById('usdRate').innerHTML = `$1 = ₪${APP_STATE.usdRate.toFixed(2)}`;
+                updateDataStatus();
+                return true;
+            }
+            throw new Error('Invalid data structure');
+        } catch (error) {
+            console.warn('Failed to fetch USD rate, using default:', error);
+            APP_STATE.usdRate = FINANCIAL_CONFIG.DEFAULTS.USD_RATE;
+            document.getElementById('usdRate').innerHTML = `$1 ≈ ₪${APP_STATE.usdRate.toFixed(2)}`;
+            return false;
+        }
+    }
+
+    /**
+     * Fetch inflation rate from Israeli Central Bureau of Statistics API
+     * Falls back to default 2.5% if API fails
+     */
+    async function fetchInflationRate() {
+        try {
+            // Try Israeli CBS API first
+            const response = await fetch('https://api.cbs.gov.il/index/data/price?id=120010');
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Calculate year-over-year inflation from CPI data
+                if (data && data.length >= 12) {
+                    const current = data[0].value;
+                    const yearAgo = data[11].value;
+                    const calculatedInflation = ((current - yearAgo) / yearAgo);
+                    
+                    APP_STATE.inflationRate = Math.max(0, Math.min(0.10, calculatedInflation));
+                    APP_STATE.lastDataUpdate.inflation = new Date().toISOString();
+                    updateDataStatus();
+                    return true;
+                }
+            }
+            
+            // Fallback to World Bank API
+            const currentYear = new Date().getFullYear();
+            const wbResponse = await fetch(`https://api.worldbank.org/v2/country/ISR/indicator/FP.CPI.TOTL.ZG?date=${currentYear-1}&format=json`);
+            
+            if (wbResponse.ok) {
+                const wbData = await wbResponse.json();
+                if (wbData && wbData[1] && wbData[1][0]) {
+                    APP_STATE.inflationRate = wbData[1][0].value / 100;
+                    APP_STATE.lastDataUpdate.inflation = new Date().toISOString();
+                    updateDataStatus();
+                    return true;
+                }
+            }
+            
+            throw new Error('All APIs failed');
+        } catch (error) {
+            console.warn('Failed to fetch inflation rate, using default 2.5%:', error);
+            APP_STATE.inflationRate = FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
+            return false;
+        }
+    }
+
+    /**
+     * Update data status display
+     */
+    function updateDataStatus() {
+        const statusDiv = document.getElementById('dataStatus');
+        if (!statusDiv) return;
+        
+        const formatDate = (isoString) => {
+            if (!isoString) return 'לא זמין';
+            const date = new Date(isoString);
+            return date.toLocaleString('he-IL', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+        
+        statusDiv.innerHTML = `
+            <div style="font-size: 0.7rem; color: #8e8e93; padding: 10px; background: #f8f8f8; border-radius: 8px; margin-top: 10px;">
+                <div style="font-weight: bold; margin-bottom: 5px;">📊 סטטוס נתונים:</div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                    <span>💱 שער דולר:</span>
+                    <span>${formatDate(APP_STATE.lastDataUpdate.usd)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>📈 אינפלציה:</span>
+                    <span>${formatDate(APP_STATE.lastDataUpdate.inflation)} (${(APP_STATE.inflationRate * 100).toFixed(1)}%)</span>
+                </div>
+            </div>
+        `;
     }
 
     // ========== PROGRESS BAR ==========
@@ -773,7 +966,7 @@
         const inflationRate = parseFloat(document.getElementById('inflationSlider').value) / 100;
         document.getElementById('inflationValue').innerText = (inflationRate * 100).toFixed(1);
         
-        const finalP = lastCalculatedPensionTotal;
+        const finalP = APP_STATE.lastCalculatedPensionTotal;
         const finalK = parseNumber(document.getElementById('res_k').innerText.replace('₪', ''));
         const total = finalP + finalK;
         
@@ -978,32 +1171,85 @@
         ctx.fillText(`₪${formatNumber(dataPoints[dataPoints.length - 1].total)}`, finalX + 15, finalY + 5);
     }
 
+    /**
+     * Calculate income tax based on progressive tax brackets
+     * @param {number} grossSalary - Monthly gross salary
+     * @returns {number} Total tax amount
+     */
+    function calculateIncomeTax(grossSalary) {
+        let tax = 0;
+        let previousLimit = 0;
+        
+        for (const bracket of FINANCIAL_CONFIG.TAX_BRACKETS) {
+            if (grossSalary <= previousLimit) break;
+            
+            const taxableInBracket = Math.min(grossSalary, bracket.limit) - previousLimit;
+            tax += taxableInBracket * bracket.rate;
+            previousLimit = bracket.limit;
+            
+            if (grossSalary <= bracket.limit) break;
+        }
+        
+        // Add healthcare tax if above threshold
+        const healthcareConfig = FINANCIAL_CONFIG.HEALTHCARE_TAX;
+        if (grossSalary > healthcareConfig.threshold) {
+            const healthcareTaxable = grossSalary - healthcareConfig.threshold;
+            tax += healthcareTaxable * healthcareConfig.employeeRate * healthcareConfig.employerShare;
+        }
+        
+        return tax;
+    }
+
     function handleSalaryInput(input) {
-        let b = parseNumber(input.value);
-        input.value = b > 0 ? formatNumber(b) : "";
+        let bruto = parseNumber(input.value);
+        input.value = bruto > 0 ? formatNumber(bruto) : "";
         const resBox = document.getElementById('salaryResultBox');
-        if (b < 5000) { resBox.style.display = 'none'; return; }
+        
+        if (bruto < 5000) { 
+            resBox.style.display = 'none'; 
+            return; 
+        }
+        
         resBox.style.display = 'block';
 
-        let tax = (b <= 18000) ? b * 0.097 : (b <= 25000) ? 1750 + (b-18000)*0.32 : (b <= 36000) ? 4000 + (b-25000)*0.40 : 8450 + (b-36000)*0.47;
-        if (b > 15712) tax += (b - 15712) * 0.075 * 0.35;
-        const bl = b * 0.067, neto = b - tax - bl - (b * 0.085);
-        const ep = b * 0.125, ek = b * 0.075;
-        currentP = ep + (b * 0.06); currentK = ek + (b * 0.025);
+        // Calculate tax using configuration
+        const tax = calculateIncomeTax(bruto);
+        
+        // Calculate deductions using configuration
+        const deductions = FINANCIAL_CONFIG.DEDUCTIONS;
+        const btl = bruto * deductions.BTL_RATE;
+        const totalPensionDeduction = bruto * deductions.TOTAL_PENSION_DEDUCTION;
+        
+        // Calculate net salary
+        const neto = bruto - tax - btl - totalPensionDeduction;
+        
+        // Calculate employer contributions
+        const employerPension = bruto * deductions.EMPLOYER_PENSION;
+        const employerProvident = bruto * deductions.EMPLOYER_STUDY_FUND;
+        
+        // Total pension and provident (employer + employee)
+        const totalPension = employerPension + (bruto * deductions.EMPLOYEE_PENSION);
+        const totalProvident = employerProvident + (bruto * deductions.EMPLOYEE_STUDY_FUND);
+        
+        // Update state
+        APP_STATE.currentP = totalPension;
+        APP_STATE.currentK = totalProvident;
 
+        // Update UI
         document.getElementById('r_neto').innerText = '₪' + formatNumber(neto);
         document.getElementById('r_tax').innerText = '₪' + formatNumber(tax);
-        document.getElementById('r_bl').innerText = '₪' + formatNumber(bl);
+        document.getElementById('r_bl').innerText = '₪' + formatNumber(btl);
         document.getElementById('s_neto').innerText = '₪' + formatNumber(neto * 12);
-        document.getElementById('s_pension').innerText = '₪' + formatNumber(ep * 12);
-        document.getElementById('s_ksh').innerText = '₪' + formatNumber(ek * 12);
-        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber((neto + ep + ek) * 12);
+        document.getElementById('s_pension').innerText = '₪' + formatNumber(totalPension * 12);
+        document.getElementById('s_ksh').innerText = '₪' + formatNumber(totalProvident * 12);
+        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber((neto + totalPension + totalProvident) * 12);
+        
         saveToStorage();
     }
 
     function transferToSavings() {
-        document.getElementById('p_mon').value = formatNumber(currentP);
-        document.getElementById('k_mon').value = formatNumber(currentK);
+        document.getElementById('p_mon').value = formatNumber(APP_STATE.currentP);
+        document.getElementById('k_mon').value = formatNumber(APP_STATE.currentK);
         document.getElementById('savingsCard').scrollIntoView({ behavior: 'smooth' });
         calcSavings();
         saveToStorage();
@@ -1028,7 +1274,7 @@
             return fv * Math.pow(1 + mRoi, wM);
         }
         const finalP = getFV(pS, pM), finalK = getFV(kS, kM);
-        lastCalculatedPensionTotal = finalP; 
+        APP_STATE.lastCalculatedPensionTotal = finalP; 
         document.getElementById('res_p').innerText = '₪' + formatNumber(finalP);
         document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
@@ -1066,7 +1312,7 @@
         calcSavings();
         
         // העברת הסכומים הצפויים למחשבון הפרישה
-        const finalP = lastCalculatedPensionTotal;
+        const finalP = APP_STATE.lastCalculatedPensionTotal;
         const finalK = parseNumber(document.getElementById('res_k').innerText.replace('₪', ''));
         document.getElementById('pensionFund').value = formatNumber(finalP);
         document.getElementById('providentFund').value = formatNumber(finalK);
@@ -1075,7 +1321,7 @@
     }
 
     function transferToPensionCalc() {
-        const finalP = lastCalculatedPensionTotal;
+        const finalP = APP_STATE.lastCalculatedPensionTotal;
         const finalK = parseNumber(document.getElementById('res_k').innerText.replace('₪', ''));
         
         document.getElementById('pensionFund').value = formatNumber(finalP);
@@ -1090,6 +1336,20 @@
         input.value = val > 0 ? formatNumber(val) : "";
         calculateSplitPension();
         saveToStorage();
+    }
+
+    /**
+     * Get pension conversion factor based on retirement age
+     * @param {number} age - Retirement age
+     * @returns {number} Conversion factor
+     */
+    function getPensionFactor(age) {
+        for (const [key, config] of Object.entries(FINANCIAL_CONFIG.PENSION_FACTORS)) {
+            if (age <= config.maxAge) {
+                return config.factor;
+            }
+        }
+        return FINANCIAL_CONFIG.PENSION_FACTORS.STANDARD.factor;
     }
 
     function calculateSplitPension() {
@@ -1126,23 +1386,17 @@
         if (pensionAmount > 0) {
             pensionBox.style.display = 'block';
             
-            let factor = 200;
-            if (retireAge < 60) factor = 220;
-            if (retireAge > 70) factor = 180;
-
+            // Use configuration-based factor
+            const factor = getPensionFactor(retireAge);
             const bruto = pensionAmount / factor;
-            const pointValue = 242;
-            const points = (gender === 'female') ? 2.7 : 2.2;
-            const taxCredit = points * pointValue;
+            
+            // Use configuration for tax credits
+            const credits = FINANCIAL_CONFIG.TAX_CREDITS;
+            const points = (gender === 'female') ? credits.BASE_POINTS_FEMALE : credits.BASE_POINTS_MALE;
+            const taxCredit = points * credits.POINT_VALUE;
 
-            let tax = 0;
-            if (bruto > 7010) {
-                if (bruto <= 7010) tax = bruto * 0.1;
-                else if (bruto <= 10060) tax = (7010 * 0.1) + (bruto - 7010) * 0.14;
-                else if (bruto <= 16150) tax = (7010 * 0.1) + (3050 * 0.14) + (bruto - 10060) * 0.20;
-                else tax = (7010 * 0.1) + (3050 * 0.14) + (6090 * 0.20) + (bruto - 16150) * 0.31;
-            }
-
+            // Calculate pension tax using same progressive method
+            const tax = calculateIncomeTax(bruto);
             const finalTax = Math.max(0, tax - taxCredit);
             const neto = bruto - finalTax;
 
@@ -1162,8 +1416,9 @@
             const monthlyProvident = providentAmount > 0 ? providentAmount / bridgeMonths : 0;
             const monthlyPension = pensionAmount > 0 ? parseNumber(document.getElementById('netoVal').innerText.replace('₪', '')) : 0;
             
-            // חישוב ממוצע משוקלל על פני כל התקופה (עד גיל 90 למשל)
-            const totalLifeYears = 90 - stopAge;
+            // חישוב ממוצע משוקלל על פני כל התקופה
+            const lifeExpectancy = FINANCIAL_CONFIG.DEFAULTS.LIFE_EXPECTANCY;
+            const totalLifeYears = lifeExpectancy - stopAge;
             const avgMonthlyIncome = ((monthlyProvident * bridgeYears) + (monthlyPension * (totalLifeYears - bridgeYears))) / totalLifeYears;
 
             document.getElementById('totalProvident').innerText = '₪' + formatNumber(monthlyProvident);
@@ -1206,9 +1461,9 @@
             localStorage.removeItem('salaryCalcData');
             
             // איפוס משתנים גלובליים
-            currentP = 0;
-            currentK = 0;
-            lastCalculatedPensionTotal = 0;
+            APP_STATE.currentP = 0;
+            APP_STATE.currentK = 0;
+            APP_STATE.lastCalculatedPensionTotal = 0;
             
             // חישוב מחדש
             calcSavings();
@@ -1279,12 +1534,26 @@
         }
     }
 
-    window.onload = function() { 
+    window.onload = async function() { 
         loadFromStorage(); 
         calcSavings();
-        fetchUSDRate();
+        
+        // Fetch external data
+        await Promise.all([
+            fetchUSDRate(),
+            fetchInflationRate()
+        ]);
+        
+        // Set inflation slider to fetched rate
+        const inflationSlider = document.getElementById('inflationSlider');
+        if (inflationSlider) {
+            inflationSlider.value = APP_STATE.inflationRate * 100;
+            document.getElementById('inflationValue').innerText = (APP_STATE.inflationRate * 100).toFixed(1);
+        }
+        
         setupLazyLoading();
         updateProgressBar();
+        updateInflation();
         
         // Make first card visible immediately
         document.querySelector('.card').classList.add('visible');
