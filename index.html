@@ -8,9 +8,11 @@
     <meta name="theme-color" content="#007aff">
     <link rel="apple-touch-icon" href="Image1.png">
     <style>
-        * { box-sizing: border-box; }
+        * { 
+            box-sizing: border-box; 
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
         body { 
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             background-color: #f2f2f7; 
             margin: 0; 
             padding: 15px; 
@@ -202,6 +204,18 @@
             flex: 1;
             position: relative;
             z-index: 2;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .progress-step:hover .step-circle {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(0,122,255,0.4);
+        }
+
+        .progress-step:hover .step-label {
+            color: #007aff;
+            transform: scale(1.05);
         }
 
         .step-circle {
@@ -215,6 +229,16 @@
             font-size: 1.2rem;
             transition: all 0.3s ease;
             border: 3px solid #e5e5ea;
+            cursor: pointer;
+        }
+
+        .step-circle:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(0,122,255,0.4);
+        }
+
+        .step-circle:active {
+            transform: scale(1.05);
         }
 
         .step-circle.active {
@@ -234,6 +258,7 @@
             margin-top: 5px;
             color: #8e8e93;
             font-weight: 600;
+            transition: all 0.2s ease;
         }
 
         .step-label.active {
@@ -320,9 +345,11 @@
             display: block;
         }
 
-        canvas {
-            max-width: 100%;
-            height: auto;
+        #chartCanvas {
+            width: 100%;
+            height: 250px;
+            border-radius: 8px;
+            background: white;
         }
 
         /* Goals Section */
@@ -413,15 +440,15 @@
         <div class="progress-line">
             <div class="progress-line-fill" id="progressFill"></div>
         </div>
-        <div class="progress-step" data-step="1">
+        <div class="progress-step" data-step="1" onclick="scrollToCard(0)">
             <div class="step-circle active" id="step1">💰</div>
             <div class="step-label active">שכר</div>
         </div>
-        <div class="progress-step" data-step="2">
+        <div class="progress-step" data-step="2" onclick="scrollToCard(1)">
             <div class="step-circle" id="step2">📈</div>
             <div class="step-label">חיסכון</div>
         </div>
-        <div class="progress-step" data-step="3">
+        <div class="progress-step" data-step="3" onclick="scrollToCard(2)">
             <div class="step-circle" id="step3">🏖️</div>
             <div class="step-label">פרישה</div>
         </div>
@@ -506,7 +533,10 @@
     
     <!-- Chart Container -->
     <div class="chart-container" id="savingsChart">
-        <div style="text-align: center; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; color: #5856d6;">📊 התפתחות החיסכון לאורך זמן</div>
+        <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-size: 1.1rem; font-weight: bold; color: #5856d6; margin-bottom: 5px;">📊 התפתחות החיסכון לאורך זמן</div>
+            <div style="font-size: 0.8rem; color: #8e8e93;">גרף מצטבר - כל צבע מייצג סוג חיסכון נוסף</div>
+        </div>
         <canvas id="chartCanvas"></canvas>
     </div>
 </div>
@@ -610,6 +640,16 @@
 
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToCard(cardIndex) {
+        const cards = document.querySelectorAll('.card');
+        if (cards[cardIndex]) {
+            const yOffset = -100; // Offset for sticky progress bar
+            const element = cards[cardIndex];
+            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
     }
 
     // ========== PROGRESS BAR ==========
@@ -776,7 +816,7 @@
         
         const ctx = canvas.getContext('2d');
         const width = canvas.width = canvas.offsetWidth * 2; // Retina
-        const height = canvas.height = 400;
+        const height = canvas.height = 500;
         
         ctx.clearRect(0, 0, width, height);
         
@@ -803,103 +843,139 @@
         // Find max value for scaling
         const maxValue = Math.max(...dataPoints.map(d => d.total));
         
-        // Draw grid
+        const padding = { top: 50, right: 40, bottom: 70, left: 80 };
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        
+        // Draw background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw grid lines
         ctx.strokeStyle = '#e5e5ea';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 2;
         for (let i = 0; i <= 5; i++) {
-            const y = (height - 60) * (i / 5) + 20;
+            const y = padding.top + (chartHeight * i / 5);
             ctx.beginPath();
-            ctx.moveTo(40, y);
-            ctx.lineTo(width - 20, y);
+            ctx.moveTo(padding.left, y);
+            ctx.lineTo(width - padding.right, y);
             ctx.stroke();
         }
         
-        // Draw axes
-        ctx.strokeStyle = '#8e8e93';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(40, 20);
-        ctx.lineTo(40, height - 40);
-        ctx.lineTo(width - 20, height - 40);
-        ctx.stroke();
+        // Draw Y-axis labels
+        ctx.fillStyle = '#3a3a3c';
+        ctx.font = 'bold 24px -apple-system, system-ui';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i <= 5; i++) {
+            const value = maxValue * (5 - i) / 5;
+            const y = padding.top + (chartHeight * i / 5);
+            const label = value >= 1000000 ? `${(value/1000000).toFixed(1)}M` : `${(value/1000).toFixed(0)}K`;
+            ctx.fillText(`₪${label}`, padding.left - 15, y);
+        }
         
-        // Draw area chart
-        const xStep = (width - 60) / tY;
+        // Draw X-axis labels
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const xStep = chartWidth / tY;
+        const labelInterval = Math.ceil(tY / 5);
+        for (let year = 0; year <= tY; year += labelInterval) {
+            const x = padding.left + (year / tY) * chartWidth;
+            ctx.fillText(`שנה ${year}`, x, height - padding.bottom + 15);
+        }
         
-        // Pension area
-        ctx.fillStyle = 'rgba(0, 122, 255, 0.3)';
+        // Draw stacked area chart
+        // Pension area (bottom)
+        ctx.fillStyle = '#007aff';
+        ctx.globalAlpha = 0.6;
         ctx.beginPath();
-        ctx.moveTo(40, height - 40);
+        ctx.moveTo(padding.left, height - padding.bottom);
         dataPoints.forEach((d, i) => {
-            const x = 40 + i * xStep;
-            const y = height - 40 - (d.pension / maxValue) * (height - 60);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+            const x = padding.left + (i / tY) * chartWidth;
+            const y = height - padding.bottom - (d.pension / maxValue) * chartHeight;
+            ctx.lineTo(x, y);
         });
-        ctx.lineTo(40 + tY * xStep, height - 40);
+        ctx.lineTo(padding.left + chartWidth, height - padding.bottom);
         ctx.closePath();
         ctx.fill();
         
-        // Provident area
-        ctx.fillStyle = 'rgba(88, 86, 214, 0.3)';
+        // Provident area (top)
+        ctx.fillStyle = '#5856d6';
+        ctx.globalAlpha = 0.6;
         ctx.beginPath();
         dataPoints.forEach((d, i) => {
-            const x = 40 + i * xStep;
-            const yPension = height - 40 - (d.pension / maxValue) * (height - 60);
-            const yTotal = height - 40 - (d.total / maxValue) * (height - 60);
+            const x = padding.left + (i / tY) * chartWidth;
+            const yPension = height - padding.bottom - (d.pension / maxValue) * chartHeight;
             if (i === 0) ctx.moveTo(x, yPension);
-            ctx.lineTo(x, yTotal);
+            else ctx.lineTo(x, yPension);
         });
         for (let i = dataPoints.length - 1; i >= 0; i--) {
-            const x = 40 + i * xStep;
-            const y = height - 40 - (dataPoints[i].pension / maxValue) * (height - 60);
-            ctx.lineTo(x, y);
+            const x = padding.left + (i / tY) * chartWidth;
+            const yTotal = height - padding.bottom - (dataPoints[i].total / maxValue) * chartHeight;
+            ctx.lineTo(x, yTotal);
         }
         ctx.closePath();
         ctx.fill();
         
-        // Draw line
-        ctx.strokeStyle = '#5856d6';
-        ctx.lineWidth = 3;
+        // Draw outline for total
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#2c3e50';
+        ctx.lineWidth = 4;
         ctx.beginPath();
         dataPoints.forEach((d, i) => {
-            const x = 40 + i * xStep;
-            const y = height - 40 - (d.total / maxValue) * (height - 60);
+            const x = padding.left + (i / tY) * chartWidth;
+            const y = height - padding.bottom - (d.total / maxValue) * chartHeight;
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
         ctx.stroke();
         
-        // Draw labels
-        ctx.fillStyle = '#3a3a3c';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'center';
+        // Draw axes
+        ctx.strokeStyle = '#3a3a3c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, height - padding.bottom);
+        ctx.lineTo(width - padding.right, height - padding.bottom);
+        ctx.stroke();
         
-        // X-axis labels
-        [0, tY/4, tY/2, 3*tY/4, tY].forEach(year => {
-            const x = 40 + (year / tY) * (width - 60);
-            ctx.fillText(`${Math.round(year)}`, x, height - 15);
-        });
+        // Draw legend with larger text
+        const legendX = width - padding.right - 200;
+        const legendY = padding.top + 10;
         
-        // Y-axis labels
-        ctx.textAlign = 'left';
-        for (let i = 0; i <= 5; i++) {
-            const value = (maxValue / 5) * (5 - i);
-            const y = (height - 60) * (i / 5) + 25;
-            ctx.fillText(`${formatNumber(value/1000)}K`, 5, y);
-        }
-        
-        // Legend
         ctx.fillStyle = '#007aff';
-        ctx.fillRect(width - 180, 30, 20, 15);
+        ctx.fillRect(legendX, legendY, 30, 20);
         ctx.fillStyle = '#3a3a3c';
-        ctx.font = '18px Arial';
-        ctx.fillText('פנסיה', width - 155, 42);
+        ctx.font = 'bold 26px -apple-system, system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillText('פנסיה', legendX - 10, legendY + 15);
         
         ctx.fillStyle = '#5856d6';
-        ctx.fillRect(width - 180, 55, 20, 15);
+        ctx.fillRect(legendX, legendY + 35, 30, 20);
         ctx.fillStyle = '#3a3a3c';
-        ctx.fillText('קה"ש', width - 155, 67);
+        ctx.fillText('קרן השתלמות', legendX - 10, legendY + 50);
+        
+        ctx.strokeStyle = '#2c3e50';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(legendX, legendY + 80);
+        ctx.lineTo(legendX + 30, legendY + 80);
+        ctx.stroke();
+        ctx.fillStyle = '#3a3a3c';
+        ctx.fillText('סה"כ', legendX - 10, legendY + 85);
+        
+        // Draw final value annotation
+        const finalX = padding.left + chartWidth;
+        const finalY = height - padding.bottom - (dataPoints[dataPoints.length - 1].total / maxValue) * chartHeight;
+        ctx.fillStyle = '#34c759';
+        ctx.beginPath();
+        ctx.arc(finalX, finalY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#34c759';
+        ctx.font = 'bold 28px -apple-system, system-ui';
+        ctx.textAlign = 'left';
+        ctx.fillText(`₪${formatNumber(dataPoints[dataPoints.length - 1].total)}`, finalX + 15, finalY + 5);
     }
 
     function handleSalaryInput(input) {
