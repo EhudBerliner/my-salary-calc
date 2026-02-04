@@ -1,4 +1,4 @@
-const CACHE_NAME = 'salary-calc-v3.0';
+const CACHE_NAME = 'salary-calc-v3.1';
 const ASSETS = [
   './', 
   './index.html', 
@@ -13,4 +13,5 @@ self.addEventListener('install', (e) => {
 self.addEventListener('fetch', (e) => {
   e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
 });
+
 
