@@ -655,7 +655,7 @@
         <div class="progress-line">
             <div class="progress-line-fill" id="progressFill"></div>
         </div>
-        <div class="progress-step" data-step="1" onclick="scrollToCard(0)">
+        <div class="progress-step" data-step="1" onclick="(0)">
             <div class="step-circle active" id="step1">💰</div>
             <div class="step-label active">שכר</div>
         </div>
@@ -1011,7 +1011,7 @@
             // Get actual height of sticky header
             const progressContainer = document.querySelector('.progress-container');
             const headerHeight = progressContainer ? progressContainer.offsetHeight : 140;
-            const additionalPadding = 30; // Extra space
+            const additionalPadding = 40; // Extra space
             
             const elementPosition = titleElement.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerHeight - additionalPadding;
