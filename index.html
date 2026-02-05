@@ -35,8 +35,10 @@
             text-align: center; 
             font-size: 1.4rem; 
             margin-bottom: 20px; 
+            padding-top: 20px;
             padding-bottom: 10px; 
             border-bottom: 2px solid #f2f2f7; 
+            scroll-margin-top: 140px; /* Space for sticky header when scrolling */
         }
 
         .salary-title { color: #007aff; }
@@ -673,7 +675,7 @@
 
 <div class="card">
     <h2 class="salary-title" id="salaryCalcTitle">מחשבון שכר חודשי</h2>
-    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.2 - משודרגת</div>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.3 - משודרגת</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -899,7 +901,7 @@
 <script>
     /**
      * =====================================================
-     * SALARY & PENSION CALCULATOR v3.2
+     * SALARY & PENSION CALCULATOR v3.3
      * =====================================================
      * 
      * Architecture: Data-driven with centralized configuration
