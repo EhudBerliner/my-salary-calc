@@ -1,6 +1,6 @@
 {
-  "short_name": "מחשבון שכר v3.3",
-  "name": "מחשבון שכר וחיסכון פנסיוני v3.3",
+  "short_name": "מחשבון שכר v3.4",
+  "name": "מחשבון שכר וחיסכון פנסיוני v3.4",
   "icons": [
     {
       "src": "Image1.png",
@@ -13,5 +13,5 @@
   "display": "standalone",
   "theme_color": "#007aff",
   "background_color": "#f2f2f7",
-  "version": "3.3"
+  "version": "3.4"
 }

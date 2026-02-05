@@ -675,7 +675,7 @@
 
 <div class="card">
     <h2 class="salary-title" id="salaryCalcTitle">מחשבון שכר חודשי</h2>
-    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.3 - משודרגת</div>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה <span id="appVersion"></span> - משודרגת</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -901,7 +901,7 @@
 <script>
     /**
      * =====================================================
-     * SALARY & PENSION CALCULATOR v3.3
+     * SALARY & PENSION CALCULATOR
      * =====================================================
      * 
      * Architecture: Data-driven with centralized configuration
@@ -913,9 +913,12 @@
      * - Separation of business logic from UI
      * - State management pattern
      * 
-     * Last Updated: 2026-02-04
+     * Last Updated: 2026-02-05
      * =====================================================
      */
+
+    // ========== VERSION MANAGEMENT ==========
+    const APP_VERSION = "3.4";  // ★ נהל את מספר הגרסה רק כאן ★
 
     // ========== CENTRALIZED CONFIGURATION ==========
     const FINANCIAL_CONFIG = {
@@ -1005,9 +1008,18 @@
         const titleElement = document.getElementById(titleIds[cardIndex]);
         
         if (titleElement) {
-            const yOffset = -120; // Offset for sticky progress bar
-            const y = titleElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({ top: y, behavior: 'smooth' });
+            // Get actual height of sticky header
+            const progressContainer = document.querySelector('.progress-container');
+            const headerHeight = progressContainer ? progressContainer.offsetHeight : 140;
+            const additionalPadding = 20; // Extra space
+            
+            const elementPosition = titleElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerHeight - additionalPadding;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
         }
     }
 
@@ -1641,10 +1653,22 @@
         APP_STATE.currentK = totalProvident;
 
         // Calculate yearly totals
-        const yearlyNeto = neto * 12;
+        // IMPORTANT: Neto already includes additionalSalary in monthly calculation
+        // For yearly summary, we need to separate:
+        // - If additional is regular: include all 12 months
+        // - If additional is NOT regular: exclude it from yearly total
+        
+        const monthlyNetoWithoutAdditional = bruto - tax + additionalSalary - btl - totalPensionDeduction - additionalSalary;
+        // Simplified: calculate tax on bruto only for the base
+        const taxOnBrutoOnly = calculateIncomeTax(bruto);
+        const baseMonthlyNeto = bruto - taxOnBrutoOnly - btl - totalPensionDeduction;
+        
+        const yearlyBaseNeto = baseMonthlyNeto * 12;
+        const yearlyAdditionalIncome = isAdditionalRegular ? (additionalSalary * 12) : 0;
+        const yearlyNeto = yearlyBaseNeto + yearlyAdditionalIncome;
+        
         const yearlyPension = totalPension * 12;
         const yearlyProvident = totalProvident * 12;
-        const yearlyAdditional = isAdditionalRegular ? (additionalSalary * 12) : 0;
         
         // Update UI
         document.getElementById('r_neto').innerText = '₪' + formatNumber(neto);
@@ -1665,8 +1689,8 @@
         document.getElementById('s_pension').innerText = '₪' + formatNumber(yearlyPension);
         document.getElementById('s_ksh').innerText = '₪' + formatNumber(yearlyProvident);
         
-        // Total includes additional salary only if marked as regular
-        const yearlyTotal = yearlyNeto + yearlyPension + yearlyProvident + yearlyAdditional;
+        // Total - yearlyNeto already includes additional if regular
+        const yearlyTotal = yearlyNeto + yearlyPension + yearlyProvident;
         document.getElementById('s_yearly_total').innerText = '₪' + formatNumber(yearlyTotal);
         
         saveToStorage();
@@ -2038,7 +2062,13 @@
         }
     }
 
-    window.onload = async function() { 
+    window.onload = async function() {
+        // Update version display
+        const versionElement = document.getElementById('appVersion');
+        if (versionElement) {
+            versionElement.innerText = APP_VERSION;
+        }
+        
         loadFromStorage(); 
         calcSavings();
         
