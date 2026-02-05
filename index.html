@@ -203,6 +203,71 @@
         .erosion-box.hidden {
             display: none !important;
         }
+        
+        /* Additional salary section */
+        .expand-btn {
+            background: #f2f2f7;
+            color: #007aff;
+            border: 1px solid #d1d1d6;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 15px 0 10px 0;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .expand-btn:hover {
+            background: #e5e5ea;
+        }
+        
+        .expand-btn .arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .expand-btn.expanded .arrow {
+            transform: rotate(180deg);
+        }
+        
+        .additional-salary-section {
+            display: none;
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        
+        .additional-salary-section.show {
+            display: block;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
 
         /* Scroll to Top Button */
         #scrollTopBtn {
@@ -607,17 +672,42 @@
 <button id="scrollTopBtn" onclick="scrollToTop()">↑</button>
 
 <div class="card">
-    <h2 class="salary-title">מחשבון שכר חודשי</h2>
+    <h2 class="salary-title" id="salaryCalcTitle">מחשבון שכר חודשי</h2>
     <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה 3.2 - משודרגת</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
+    </div>
+    
+    <!-- Additional Salary Section -->
+    <button class="expand-btn" id="expandAdditionalSalary" onclick="toggleAdditionalSalary()">
+        <span>➕ הוסף שכר ללא הפרשות סוציאליות</span>
+        <span class="arrow">▼</span>
+    </button>
+    
+    <div class="additional-salary-section" id="additionalSalarySection">
+        <div class="input-group">
+            <label>שכר נוסף ללא הפרשות (₪):</label>
+            <input type="text" id="additional_salary" oninput="handleSalaryInput(document.getElementById('bruto_display'))" placeholder="0" inputmode="numeric">
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="additional_salary_regular" onchange="handleSalaryInput(document.getElementById('bruto_display'))">
+            <label for="additional_salary_regular">שכר זה הוא קבוע (יחושב בסך השכר השנתי)</label>
+        </div>
+        <div style="font-size: 0.75rem; color: #8e8e93; margin-top: 10px; line-height: 1.4;">
+            💡 שכר זה לא יופקדו בגינו ניכויים סוציאליים (פנסיה, קה"ש, ביטוח לאומי).<br>
+            אם מסומן כ"קבוע", הוא יתווסף לסך השכר השנתי בסיכום.
+        </div>
     </div>
 
     <div id="salaryResultBox" class="result-box">
         <div class="line"><span class="label">נטו בבנק (חודשי):</span> <span class="value highlight" id="r_neto"></span></div>
         <div class="line"><span class="label">מס הכנסה:</span> <span class="value" id="r_tax"></span></div>
         <div class="line"><span class="label">בט"ל ובריאות:</span> <span class="value" id="r_bl"></span></div>
+        <div class="line" id="additionalSalaryLine" style="display: none; border-top: 1px solid #f2f2f7; padding-top: 10px; margin-top: 10px;">
+            <span class="label">💡 שכר נוסף (ללא הפרשות):</span> 
+            <span class="value" id="r_additional" style="color: #ff9500;"></span>
+        </div>
         <button class="btn-transfer" onclick="transferToSavings()">➕ העבר נתונים לתחזית חיסכון</button>
         <div class="summary-box">
             <div class="summary-title">סיכום צבירה שנתית</div>
@@ -630,7 +720,7 @@
 </div>
 
 <div class="card" id="savingsCard">
-    <h2 class="savings-title">תחזית חיסכון בפרישה</h2>
+    <h2 class="savings-title" id="savingsCalcTitle">תחזית חיסכון בפרישה</h2>
     <div class="input-grid">
         <div><label>צבירת פנסיה:</label><input type="text" id="p_start" oninput="formatAndCalc(this)"></div>
         <div><label>צבירת קה"ש:</label><input type="text" id="k_start" oninput="formatAndCalc(this)"></div>
@@ -705,7 +795,7 @@
 </div>
 
 <div class="card" id="pensionCalcCard">
-    <h2 class="pension-title">מחשבון הכנסות בפרישה</h2>
+    <h2 class="pension-title" id="pensionCalcTitle">מחשבון הכנסות בפרישה</h2>
     
     <!-- פרמטרים משותפים -->
     <div class="input-grid">
@@ -909,11 +999,12 @@
     }
 
     function scrollToCard(cardIndex) {
-        const cards = document.querySelectorAll('.card');
-        if (cards[cardIndex]) {
-            const yOffset = -100; // Offset for sticky progress bar
-            const element = cards[cardIndex];
-            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        const titleIds = ['salaryCalcTitle', 'savingsCalcTitle', 'pensionCalcTitle'];
+        const titleElement = document.getElementById(titleIds[cardIndex]);
+        
+        if (titleElement) {
+            const yOffset = -120; // Offset for sticky progress bar
+            const y = titleElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
     }
@@ -1506,6 +1597,16 @@
         input.value = bruto > 0 ? formatNumber(bruto) : "";
         const resBox = document.getElementById('salaryResultBox');
         
+        // Get additional salary (no social security)
+        const additionalSalaryInput = document.getElementById('additional_salary');
+        const additionalSalary = additionalSalaryInput ? parseNumber(additionalSalaryInput.value) : 0;
+        const isAdditionalRegular = document.getElementById('additional_salary_regular')?.checked || false;
+        
+        // Format additional salary input
+        if (additionalSalaryInput && additionalSalary > 0) {
+            additionalSalaryInput.value = formatNumber(additionalSalary);
+        }
+        
         if (bruto < 5000) { 
             resBox.style.display = 'none'; 
             return; 
@@ -1513,18 +1614,19 @@
         
         resBox.style.display = 'block';
 
-        // Calculate tax using configuration
-        const tax = calculateIncomeTax(bruto);
+        // Calculate tax on total income (regular + additional)
+        const totalIncome = bruto + additionalSalary;
+        const tax = calculateIncomeTax(totalIncome);
         
-        // Calculate deductions using configuration
+        // Calculate deductions ONLY on regular salary
         const deductions = FINANCIAL_CONFIG.DEDUCTIONS;
         const btl = bruto * deductions.BTL_RATE;
         const totalPensionDeduction = bruto * deductions.TOTAL_PENSION_DEDUCTION;
         
         // Calculate net salary
-        const neto = bruto - tax - btl - totalPensionDeduction;
+        const neto = totalIncome - tax - btl - totalPensionDeduction;
         
-        // Calculate employer contributions
+        // Calculate employer contributions (ONLY on regular salary)
         const employerPension = bruto * deductions.EMPLOYER_PENSION;
         const employerProvident = bruto * deductions.EMPLOYER_STUDY_FUND;
         
@@ -1536,14 +1638,34 @@
         APP_STATE.currentP = totalPension;
         APP_STATE.currentK = totalProvident;
 
+        // Calculate yearly totals
+        const yearlyNeto = neto * 12;
+        const yearlyPension = totalPension * 12;
+        const yearlyProvident = totalProvident * 12;
+        const yearlyAdditional = isAdditionalRegular ? (additionalSalary * 12) : 0;
+        
         // Update UI
         document.getElementById('r_neto').innerText = '₪' + formatNumber(neto);
         document.getElementById('r_tax').innerText = '₪' + formatNumber(tax);
         document.getElementById('r_bl').innerText = '₪' + formatNumber(btl);
-        document.getElementById('s_neto').innerText = '₪' + formatNumber(neto * 12);
-        document.getElementById('s_pension').innerText = '₪' + formatNumber(totalPension * 12);
-        document.getElementById('s_ksh').innerText = '₪' + formatNumber(totalProvident * 12);
-        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber((neto + totalPension + totalProvident) * 12);
+        
+        // Show/hide additional salary line
+        const additionalSalaryLine = document.getElementById('additionalSalaryLine');
+        if (additionalSalary > 0) {
+            additionalSalaryLine.style.display = 'flex';
+            const statusText = isAdditionalRegular ? ' (קבוע - נכלל בסה"כ שנתי)' : ' (לא קבוע)';
+            document.getElementById('r_additional').innerText = '₪' + formatNumber(additionalSalary) + statusText;
+        } else {
+            additionalSalaryLine.style.display = 'none';
+        }
+        
+        document.getElementById('s_neto').innerText = '₪' + formatNumber(yearlyNeto);
+        document.getElementById('s_pension').innerText = '₪' + formatNumber(yearlyPension);
+        document.getElementById('s_ksh').innerText = '₪' + formatNumber(yearlyProvident);
+        
+        // Total includes additional salary only if marked as regular
+        const yearlyTotal = yearlyNeto + yearlyPension + yearlyProvident + yearlyAdditional;
+        document.getElementById('s_yearly_total').innerText = '₪' + formatNumber(yearlyTotal);
         
         saveToStorage();
     }
@@ -1789,6 +1911,10 @@
         if (confirm('⚠️ האם אתה בטוח שברצונך לאפס את כל המחשבונים?\n\nפעולה זו תמחק:\n• נתוני שכר\n• תחזית חיסכון\n• חישוב פרישה\n\nהפעולה בלתי הפיכה!')) {
             // מחיקת כל השדות - מחשבון שכר
             document.getElementById('bruto_display').value = "";
+            const additionalSalaryInput = document.getElementById('additional_salary');
+            const additionalSalaryCheckbox = document.getElementById('additional_salary_regular');
+            if (additionalSalaryInput) additionalSalaryInput.value = "";
+            if (additionalSalaryCheckbox) additionalSalaryCheckbox.checked = false;
             document.getElementById('salaryResultBox').style.display = 'none';
             
             // מחיקת כל השדות - חיסכון
@@ -1847,6 +1973,8 @@
     function saveToStorage() {
         const data = {
             bruto: document.getElementById('bruto_display').value,
+            additionalSalary: document.getElementById('additional_salary')?.value || "",
+            additionalSalaryRegular: document.getElementById('additional_salary_regular')?.checked || false,
             pS: document.getElementById('p_start').value,
             kS: document.getElementById('k_start').value,
             pM: document.getElementById('p_mon').value,
@@ -1884,6 +2012,25 @@
             if(d.withdrawals) document.getElementById('withdrawalCount').value = d.withdrawals;
             if(d.gender) document.getElementById('gender').value = d.gender;
             
+            // Load additional salary data
+            if(d.additionalSalary) {
+                const additionalSalaryInput = document.getElementById('additional_salary');
+                if (additionalSalaryInput) {
+                    additionalSalaryInput.value = d.additionalSalary;
+                    // Auto-expand section if there's data
+                    const section = document.getElementById('additionalSalarySection');
+                    const btn = document.getElementById('expandAdditionalSalary');
+                    if (section && btn) {
+                        section.classList.add('show');
+                        btn.classList.add('expanded');
+                    }
+                }
+            }
+            if(d.additionalSalaryRegular !== undefined) {
+                const checkbox = document.getElementById('additional_salary_regular');
+                if (checkbox) checkbox.checked = d.additionalSalaryRegular;
+            }
+            
             if (d.bruto) handleSalaryInput(document.getElementById('bruto_display'));
             if (d.pensionFund || d.providentFund) calculateSplitPension();
         }
@@ -1915,6 +2062,19 @@
     };
     
     // ========== TOGGLE EROSION DISPLAY ==========
+    function toggleAdditionalSalary() {
+        const section = document.getElementById('additionalSalarySection');
+        const btn = document.getElementById('expandAdditionalSalary');
+        
+        if (section.classList.contains('show')) {
+            section.classList.remove('show');
+            btn.classList.remove('expanded');
+        } else {
+            section.classList.add('show');
+            btn.classList.add('expanded');
+        }
+    }
+    
     function toggleSavingsErosion() {
         const erosionBox = document.getElementById('savingsErosionBox');
         const toggleText = document.getElementById('toggleSavingsErosionText');
