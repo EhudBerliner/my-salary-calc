@@ -918,7 +918,7 @@
      */
 
     // ========== VERSION MANAGEMENT ==========
-    const APP_VERSION = "3.4";  // ★ נהל את מספר הגרסה רק כאן ★
+    const APP_VERSION = "3.5";  // ★ נהל את מספר הגרסה רק כאן ★
 
     // ========== CENTRALIZED CONFIGURATION ==========
     const FINANCIAL_CONFIG = {
@@ -1011,7 +1011,7 @@
             // Get actual height of sticky header
             const progressContainer = document.querySelector('.progress-container');
             const headerHeight = progressContainer ? progressContainer.offsetHeight : 140;
-            const additionalPadding = 20; // Extra space
+            const additionalPadding = 30; // Extra space
             
             const elementPosition = titleElement.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerHeight - additionalPadding;
