@@ -38,7 +38,7 @@
             padding-top: 20px;
             padding-bottom: 10px; 
             border-bottom: 2px solid #f2f2f7; 
-            scroll-margin-top: 140px; /* Space for sticky header when scrolling */
+            scroll-margin-top: 160px; /* Space for sticky header when scrolling */
         }
 
         .salary-title { color: #007aff; }
@@ -1011,7 +1011,7 @@
             // Get actual height of sticky header
             const progressContainer = document.querySelector('.progress-container');
             const headerHeight = progressContainer ? progressContainer.offsetHeight : 140;
-            const additionalPadding = 40; // Extra space
+            const additionalPadding = 50; // Extra space
             
             const elementPosition = titleElement.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerHeight - additionalPadding;
