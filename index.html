@@ -613,8 +613,6 @@
             margin-top: 5px;
         }
     </style>
-    
-    <link rel="icon" type="image/png" href="Image1.png">
 </head>
 <body>
 
@@ -756,10 +754,11 @@
         
         <!-- Inflation Erosion Display -->
         <div class="erosion-box hidden" id="savingsErosionBox">
-            <div class="erosion-title">💸 ערך ריאלי (לאחר שחיקה אינפלציונית)</div>
+            <div class="erosion-title">💸 כוח קנייה ריאלי (במונחי היום)</div>
             <div class="erosion-value" id="savingsRealValue"></div>
             <div class="erosion-note">
-                מחושב לפי אינפלציה ממוצעת של <span id="savingsInflationRate"></span>% לשנה
+                מחושב באמצעות ריבית ריאלית, בהתחשב באינפלציה של <span id="savingsInflationRate"></span>% לשנה.<br>
+                <small style="opacity: 0.85;">שיטת חישוב: הפקדות עתידיות מוערכות לפי ריבית ריאלית (נומינלית מינוס אינפלציה)</small>
             </div>
         </div>
         
@@ -920,7 +919,7 @@
      */
 
     // ========== VERSION MANAGEMENT ==========
-    const APP_VERSION = "3.4";  // ★ נהל את מספר הגרסה רק כאן ★
+    const APP_VERSION = "3.5";  // ★ נהל את מספר הגרסה רק כאן ★
 
     // ========== CENTRALIZED CONFIGURATION ==========
     const FINANCIAL_CONFIG = {
@@ -1730,18 +1729,42 @@
         document.getElementById('res_k').innerText = '₪' + formatNumber(finalK);
         document.getElementById('res_total').innerText = '₪' + formatNumber(finalP + finalK);
         
-        // Calculate and display real value after inflation erosion
+        // Calculate and display real value using REAL INTEREST RATE method
         const toggleBtn = document.getElementById('toggleSavingsErosion');
         if ((finalP + finalK) > 0 && tY > 0) {
             const inflationRate = APP_STATE.inflationRate || FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
-            const totalNominal = finalP + finalK;
-            const realValue = totalNominal / Math.pow(1 + inflationRate, tY);
+            
+            // Calculate real interest rate: R_real = (1 + R_nominal) / (1 + Inflation) - 1
+            const realAnnualRate = ((1 + roi) / (1 + inflationRate)) - 1;
+            const realMonthlyRate = Math.pow(1 + realAnnualRate, 1/12) - 1;
+            
+            // Recalculate with real interest rate
+            function getRealFV(initialAmount, monthlyDeposit, depositMonths, waitMonths) {
+                // Component A: Initial capital growing at real rate
+                let realFV = initialAmount * Math.pow(1 + realMonthlyRate, depositMonths);
+                
+                // Component B: Monthly deposits (annuity) at real rate
+                if (realMonthlyRate > 0) {
+                    realFV += monthlyDeposit * ((Math.pow(1 + realMonthlyRate, depositMonths) - 1) / realMonthlyRate);
+                } else {
+                    realFV += monthlyDeposit * depositMonths;
+                }
+                
+                // Continue growing at real rate during waiting period
+                realFV *= Math.pow(1 + realMonthlyRate, waitMonths);
+                
+                return realFV;
+            }
+            
+            const realValueP = getRealFV(pS, pM, dM, wM);
+            const realValueK = getRealFV(kS, kM, dM, wM);
+            const totalRealValue = realValueP + realValueK;
             
             const realValueDisplay = document.getElementById('savingsRealValue');
             const inflationRateDisplay = document.getElementById('savingsInflationRate');
             
             if (realValueDisplay && inflationRateDisplay) {
-                realValueDisplay.innerText = '₪' + formatNumber(realValue);
+                realValueDisplay.innerText = '₪' + formatNumber(totalRealValue);
                 inflationRateDisplay.innerText = (inflationRate * 100).toFixed(1);
             }
             
@@ -1899,13 +1922,17 @@
             document.getElementById('pensionStartAge').innerText = retireAge;
             document.getElementById('avgIncome').innerText = '₪' + formatNumber(avgMonthlyIncome);
             
-            // Calculate and display real value after inflation erosion
+            // Calculate and display real value (purchasing power at retirement)
             const currentAge = 30; // Default current age, can be made configurable
             const yearsUntilRetirement = stopAge - currentAge;
             const toggleBtn = document.getElementById('togglePensionErosion');
             
             if (yearsUntilRetirement > 0) {
                 const inflationRate = APP_STATE.inflationRate || FINANCIAL_CONFIG.DEFAULTS.INFLATION_RATE;
+                
+                // For pension/provident funds: These are LUMP SUM amounts at retirement
+                // So we calculate their real value (purchasing power in today's terms)
+                // using simple discounting: RealValue = NominalValue / (1 + inflation)^years
                 const pensionRealValue = pensionAmount / Math.pow(1 + inflationRate, yearsUntilRetirement);
                 const providentRealValue = providentAmount / Math.pow(1 + inflationRate, yearsUntilRetirement);
                 

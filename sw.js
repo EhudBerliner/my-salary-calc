@@ -1,4 +1,4 @@
-const CACHE_NAME = 'salary-calc-v3.4';
+const CACHE_NAME = 'salary-calc-v3.5';
 const ASSETS = [
   './', 
   './index.html', 
