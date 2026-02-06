@@ -616,6 +616,25 @@
 </head>
 <body>
 
+<!-- Currency & Economic Data Widget -->
+<div class="currency-widget" id="currencyWidget" onclick="toggleWidget()">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="flex: 1;">
+            <div style="font-size: 0.65rem; opacity: 0.7;">💱 דולר</div>
+            <div class="currency-rate" id="usdRate" style="font-size: 0.8rem; font-weight: bold;">טוען...</div>
+        </div>
+        <div style="flex: 1; border-right: 1px solid #e5e5ea; padding-right: 10px;">
+            <div style="font-size: 0.65rem; opacity: 0.7;">📈 אינפלציה</div>
+            <div id="inflationRate" style="font-size: 0.8rem; font-weight: bold; color: #ff9500;">טוען...</div>
+        </div>
+    </div>
+    <div id="widgetExpanded" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e5ea;">
+        <div style="font-size: 0.6rem; color: #8e8e93;">
+            <div id="widgetUpdateTime">עדכון: טוען...</div>
+        </div>
+    </div>
+</div>
+
 <!-- Progress Bar -->
 <div class="progress-container">
     <!-- Economic Indicators Header -->
@@ -2144,4 +2163,4 @@
     }
 </script>
 </body>
-</html>
+    </html>
