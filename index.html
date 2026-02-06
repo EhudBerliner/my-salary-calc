@@ -454,6 +454,46 @@
             transition: width 0.5s ease;
         }
 
+        /* Currency Converter Widget */
+        .currency-widget {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 0.75rem;
+            z-index: 100;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            max-width: 200px;
+        }
+
+        .currency-widget:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .currency-widget:active {
+            transform: translateY(0);
+        }
+
+        .currency-rate {
+            font-weight: bold;
+            color: #007aff;
+        }
+
+        @media (max-width: 600px) {
+            .currency-widget {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                padding: 10px 12px;
+            }
+        }
+
         /* Lazy Load Animation */
         .card {
             opacity: 0;
@@ -575,6 +615,25 @@
     </style>
 </head>
 <body>
+
+<!-- Currency & Economic Data Widget -->
+<div class="currency-widget" id="currencyWidget" onclick="toggleWidget()">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="flex: 1;">
+            <div style="font-size: 0.65rem; opacity: 0.7;">💱 דולר</div>
+            <div class="currency-rate" id="usdRate" style="font-size: 0.8rem; font-weight: bold;">טוען...</div>
+        </div>
+        <div style="flex: 1; border-right: 1px solid #e5e5ea; padding-right: 10px;">
+            <div style="font-size: 0.65rem; opacity: 0.7;">📈 אינפלציה</div>
+            <div id="inflationRate" style="font-size: 0.8rem; font-weight: bold; color: #ff9500;">טוען...</div>
+        </div>
+    </div>
+    <div id="widgetExpanded" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e5ea;">
+        <div style="font-size: 0.6rem; color: #8e8e93;">
+            <div id="widgetUpdateTime">עדכון: טוען...</div>
+        </div>
+    </div>
+</div>
 
 <!-- Progress Bar -->
 <div class="progress-container">
@@ -860,7 +919,7 @@
      */
 
     // ========== VERSION MANAGEMENT ==========
-    const APP_VERSION = "3.6";  // ★ נהל את מספר הגרסה רק כאן ★
+    const APP_VERSION = "3.7";  // ★ נהל את מספר הגרסה רק כאן ★
 
     // ========== CENTRALIZED CONFIGURATION ==========
     const FINANCIAL_CONFIG = {
@@ -2036,7 +2095,7 @@
         // Update version display
         const versionElement = document.getElementById('appVersion');
         if (versionElement) {
-            versionElement.innerText = `${APP_VERSION}`;
+            versionElement.innerText = ` ${APP_VERSION}`;
         }
         
         loadFromStorage(); 
@@ -2104,4 +2163,4 @@
     }
 </script>
 </body>
-</html>
+    </html>
