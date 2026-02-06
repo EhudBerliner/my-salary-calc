@@ -675,7 +675,7 @@
 
 <div class="card">
     <h2 class="salary-title" id="salaryCalcTitle">מחשבון שכר חודשי</h2>
-    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה <span id="appVersion"></span></div>
+    <div style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: -15px; margin-bottom: 15px;">גרסה <span id="appVersion"></span> - משודרגת</div>
     <div class="input-group">
         <label>שכר ברוטו חודשי (₪):</label>
         <input type="text" id="bruto_display" oninput="handleSalaryInput(this)" placeholder="הכנס שכר" inputmode="numeric">
@@ -919,7 +919,7 @@
      */
 
     // ========== VERSION MANAGEMENT ==========
-    const APP_VERSION = "3.6";  // ★ נהל את מספר הגרסה רק כאן ★
+    const APP_VERSION = "3.5";  // ★ נהל את מספר הגרסה רק כאן ★
 
     // ========== CENTRALIZED CONFIGURATION ==========
     const FINANCIAL_CONFIG = {
@@ -967,7 +967,7 @@
         
         // Default values
         DEFAULTS: {
-            USD_RATE: 3.4,
+            USD_RATE: 3.6,
             INFLATION_RATE: 0.025,
             LIFE_EXPECTANCY: 90
         }
